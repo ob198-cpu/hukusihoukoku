@@ -1284,7 +1284,7 @@
       const staffInquiries = inquiries.filter(item => item.type === "職員問い合わせ").length;
       const start = $("#week-start").value;
       const end = $("#week-end").value;
-      $("#period-label").textContent = `${dateLabel(start)}～${dateLabel(end)}　投稿`;
+      $("#period-label").textContent = `${dateLabel(start)}～${dateLabel(end)}　投稿（${escapeHtml(business)}）`;
       $("#total-impressions").textContent = `${totalImpressions.toLocaleString()}回`;
       $("#total-followers").textContent = `${latestFollowers.toLocaleString()}人`;
       $("#report-kpis").innerHTML = `
@@ -1300,11 +1300,11 @@
 
       renderPie("#impression-pie");
       renderPie("#follower-pie");
-      renderPostArea("#x-posts", posts.filter(p => p.sns === "X"), 3);
-      renderPostArea("#insta-posts", posts.filter(p => p.sns === "Instagram"), 3);
-      renderPostArea("#tiktok-posts", posts.filter(p => p.sns === "TikTok"), 3);
-      renderPostArea("#threads-posts", posts.filter(p => p.sns === "Threads"), 3);
-      renderPostArea("#youtube-posts", posts.filter(p => p.sns === "YouTube"), 3);
+      renderPostArea("#x-posts", reportRowsForSns(posts, "X", business), 3);
+      renderPostArea("#insta-posts", reportRowsForSns(posts, "Instagram", business), 3);
+      renderPostArea("#tiktok-posts", reportRowsForSns(posts, "TikTok", business), 3);
+      renderPostArea("#threads-posts", reportRowsForSns(posts, "Threads", business), 3);
+      renderPostArea("#youtube-posts", reportRowsForSns(posts, "YouTube", business), 3);
       const lstepItem = latestLstep();
       $("#lstep-check-label").textContent = dateLabel(lstepItem?.checkDate || todayIso());
       $("#lstep-report").innerHTML = `
@@ -1328,6 +1328,25 @@
           <small>${post ? `${Number(post.impressions || 0).toLocaleString()}${post.sns === "YouTube" ? "再生" : ""}` : (selector.includes("youtube") ? "再生回数" : "インプレッション")}</small>
         </div>
       `).join("");
+    }
+
+    function reportRowsForSns(posts, sns, business) {
+      const rows = posts.filter(post => post.sns === sns);
+      if (business !== "合計") {
+        return rows.sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.inputAt || "").localeCompare(b.inputAt || ""));
+      }
+
+      const grouped = new Map();
+      rows.forEach(post => {
+        const key = `${post.date || ""}_${post.sns || ""}_${post.content || ""}`;
+        if (!grouped.has(key)) {
+          grouped.set(key, { ...post, business: "合計", impressions: 0, followers: 0 });
+        }
+        const row = grouped.get(key);
+        row.impressions += Number(post.impressions || 0);
+        row.followers += Number(post.followers || 0);
+      });
+      return Array.from(grouped.values()).sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.content || "").localeCompare(b.content || "", "ja"));
     }
 
     function renderPie(selector) {
