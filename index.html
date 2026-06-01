@@ -316,6 +316,20 @@
       font-weight: 900;
     }
 
+    .total-detail-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #916f6f;
+      margin-top: 8px;
+      padding: 6px 14px;
+      color: var(--navy);
+      background: #f7caca;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
     .pie-wrap {
       position: relative;
       width: 330px;
@@ -672,6 +686,13 @@
       font-weight: 900;
     }
 
+    .summary-section-title {
+      margin: 22px 0 10px;
+      color: var(--navy);
+      font-size: 20px;
+      font-weight: 900;
+    }
+
     .print-note {
       margin: 12px 0 0;
       color: var(--muted);
@@ -789,11 +810,11 @@
           <div class="slide1-top">
             <div class="inquiry-summary-box" id="report-kpis"></div>
             <div class="chart-area">
-              <div class="total-box">総インプレッション数<br><span id="total-impressions">〇〇回</span></div>
+              <div class="total-box">創業から今日まで<br>総インプレッション数<br><span id="total-impressions">〇〇回</span><button class="total-detail-btn no-print" type="button" id="show-impression-breakdown">内訳を見る</button></div>
               <div class="pie-wrap" id="impression-pie"></div>
             </div>
             <div class="chart-area">
-              <div class="total-box">総フォロワー数<br><span id="total-followers">〇〇人</span></div>
+              <div class="total-box">今日時点<br>総フォロワー数<br><span id="total-followers">〇〇人</span></div>
               <div class="pie-wrap" id="follower-pie"></div>
             </div>
           </div>
@@ -943,7 +964,6 @@
       <div class="view-head">
         <div>
           <h2>集計シート</h2>
-          <p class="muted">総インプレッションは創業から今日までの累計として集計します。</p>
         </div>
       </div>
       <div class="panel">
@@ -964,6 +984,15 @@
             </tr>
           </thead>
           <tbody id="summary-body"></tbody>
+        </table>
+        <h3 class="summary-section-title">日付別・事業者別内訳</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th><th>事業者</th><th>投稿数</th><th>X</th><th>Instagram</th><th>TikTok</th><th>Threads</th><th>YouTube</th><th>合計Imp/再生</th><th>問い合わせ</th><th>L送信数</th>
+            </tr>
+          </thead>
+          <tbody id="summary-date-body"></tbody>
         </table>
       </div>
     </section>
@@ -1106,12 +1135,18 @@
       }
       try {
         const parsed = JSON.parse(raw);
-        return {
+        const loaded = {
           accounts: parsed.accounts?.length ? parsed.accounts : defaultAccounts(),
           posts: parsed.posts || [],
           inquiries: parsed.inquiries || [],
           lsteps: parsed.lsteps || []
         };
+        if (!loaded.posts.length && !loaded.inquiries.length && !loaded.lsteps.length) {
+          const data = sampleData();
+          saveData(data);
+          return data;
+        }
+        return loaded;
       } catch {
         const data = sampleData();
         saveData(data);
@@ -1156,7 +1191,17 @@
 
     function isThroughToday(value) {
       if (!value) return true;
-      return value <= todayIso();
+      return value <= summaryCutoffDate();
+    }
+
+    function summaryCutoffDate() {
+      const dates = [
+        todayIso(),
+        ...data.posts.map(post => post.date),
+        ...data.inquiries.map(item => item.date),
+        ...data.lsteps.map(item => item.checkDate)
+      ].filter(Boolean).sort();
+      return dates.at(-1) || todayIso();
     }
 
     function totalImpressionsThroughToday(posts) {
@@ -1228,11 +1273,13 @@
     }
 
     function renderReport() {
+      const business = $("#report-business").value;
       const posts = filteredPosts();
       const inquiries = filteredInquiries();
       const lstep = lstepInfo(latestLstep());
-      const totalImpressions = posts.reduce((sum, item) => sum + Number(item.impressions || 0), 0);
-      const latestFollowers = latestFollowerTotal(posts);
+      const totalScopePosts = data.posts.filter(post => business === "合計" || post.business === business);
+      const totalImpressions = totalImpressionsThroughToday(totalScopePosts);
+      const latestFollowers = latestFollowerTotal(totalScopePosts);
       const userInquiries = inquiries.filter(item => item.type === "利用者問い合わせ").length;
       const staffInquiries = inquiries.filter(item => item.type === "職員問い合わせ").length;
       const start = $("#week-start").value;
@@ -1253,11 +1300,11 @@
 
       renderPie("#impression-pie");
       renderPie("#follower-pie");
-      renderPostArea("#x-posts", posts.filter(p => p.sns === "X").slice(0, 5), 3);
-      renderPostArea("#insta-posts", posts.filter(p => p.sns === "Instagram").slice(0, 3), 3);
-      renderPostArea("#tiktok-posts", posts.filter(p => p.sns === "TikTok").slice(0, 3), 3);
-      renderPostArea("#threads-posts", posts.filter(p => p.sns === "Threads").slice(0, 3), 3);
-      renderPostArea("#youtube-posts", posts.filter(p => p.sns === "YouTube").slice(0, 3), 3);
+      renderPostArea("#x-posts", posts.filter(p => p.sns === "X"), 3);
+      renderPostArea("#insta-posts", posts.filter(p => p.sns === "Instagram"), 3);
+      renderPostArea("#tiktok-posts", posts.filter(p => p.sns === "TikTok"), 3);
+      renderPostArea("#threads-posts", posts.filter(p => p.sns === "Threads"), 3);
+      renderPostArea("#youtube-posts", posts.filter(p => p.sns === "YouTube"), 3);
       const lstepItem = latestLstep();
       $("#lstep-check-label").textContent = dateLabel(lstepItem?.checkDate || todayIso());
       $("#lstep-report").innerHTML = `
@@ -1421,9 +1468,12 @@
     }
 
     function renderSummary() {
-      const allImpressions = totalImpressionsThroughToday(data.posts);
-      const allFollowers = latestFollowerTotal(data.posts);
-      $("#summary-body").innerHTML = businesses.map(business => {
+      const selectedBusiness = $("#report-business")?.value || "合計";
+      const visibleBusinesses = selectedBusiness === "合計" ? businesses : businesses.filter(business => business === selectedBusiness);
+      const summaryPosts = data.posts.filter(post => selectedBusiness === "合計" || post.business === selectedBusiness);
+      const allImpressions = totalImpressionsThroughToday(summaryPosts);
+      const allFollowers = latestFollowerTotal(summaryPosts);
+      $("#summary-body").innerHTML = visibleBusinesses.map(business => {
         const posts = data.posts.filter(p => p.business === business);
         const inquiries = data.inquiries.filter(i => i.business === business);
         const lstep = lstepInfo(latestLstep(business));
@@ -1438,8 +1488,70 @@
           <td><span class="pill ${lstep.remaining <= 20 ? "danger" : "ok"}">${lstep.remaining}</span></td>
         </tr>`;
       }).join("");
+      $("#summary-date-body").innerHTML = summaryDateRows(selectedBusiness).map(row => `
+        <tr>
+          <td>${dateLabel(row.date)}</td>
+          <td>${escapeHtml(row.business)}</td>
+          <td>${row.posts}</td>
+          <td>${row.x.toLocaleString()}</td>
+          <td>${row.instagram.toLocaleString()}</td>
+          <td>${row.tiktok.toLocaleString()}</td>
+          <td>${row.threads.toLocaleString()}</td>
+          <td>${row.youtube.toLocaleString()}</td>
+          <td>${row.total.toLocaleString()}</td>
+          <td>${row.inquiries}</td>
+          <td>${row.lstep.toLocaleString()}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="11">データはありません。</td></tr>`;
       $("#summary-total-impressions").textContent = `${allImpressions.toLocaleString()}回`;
       $("#summary-total-followers").textContent = `${allFollowers.toLocaleString()}人`;
+    }
+
+    function summaryDateRows(selectedBusiness = "合計") {
+      const rows = new Map();
+      const ensure = (date, business) => {
+        const key = `${date}_${business || "未設定"}`;
+        if (!rows.has(key)) {
+          rows.set(key, {
+            date,
+            business: business || "未設定",
+            posts: 0,
+            x: 0,
+            instagram: 0,
+            tiktok: 0,
+            threads: 0,
+            youtube: 0,
+            total: 0,
+            inquiries: 0,
+            lstep: 0
+          });
+        }
+        return rows.get(key);
+      };
+
+      data.posts.filter(post => (selectedBusiness === "合計" || post.business === selectedBusiness) && isThroughToday(post.date)).forEach(post => {
+        const row = ensure(post.date, post.business);
+        const value = Number(post.impressions || 0);
+        row.posts += 1;
+        row.total += value;
+        if (post.sns === "X") row.x += value;
+        if (post.sns === "Instagram") row.instagram += value;
+        if (post.sns === "TikTok") row.tiktok += value;
+        if (post.sns === "Threads") row.threads += value;
+        if (post.sns === "YouTube") row.youtube += value;
+      });
+
+      data.inquiries.filter(item => (selectedBusiness === "合計" || item.business === selectedBusiness) && isThroughToday(item.date)).forEach(item => {
+        ensure(item.date, item.business).inquiries += 1;
+      });
+
+      data.lsteps.filter(item => (selectedBusiness === "合計" || item.business === selectedBusiness) && isThroughToday(item.checkDate)).forEach(item => {
+        ensure(item.checkDate, item.business).lstep += Number(item.current || 0);
+      });
+
+      return Array.from(rows.values()).sort((a, b) =>
+        b.date.localeCompare(a.date) || a.business.localeCompare(b.business, "ja")
+      );
     }
 
     function renderAll() {
@@ -1502,6 +1614,13 @@
       renderRecords();
     }
 
+    function showSummaryBreakdown() {
+      $$(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.view === "summary"));
+      $$(".view").forEach(view => view.classList.toggle("active", view.id === "view-summary"));
+      renderSummary();
+      $("#summary-date-body").closest("table").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
     function formObject(form) {
       return Object.fromEntries(new FormData(form).entries());
     }
@@ -1559,6 +1678,7 @@
     });
     $("#prev-week").addEventListener("click", () => moveWeek(-7));
     $("#next-week").addEventListener("click", () => moveWeek(7));
+    $("#show-impression-breakdown").addEventListener("click", showSummaryBreakdown);
     $("#close-inquiry-modal").addEventListener("click", closeInquiryDetail);
     $("#inquiry-modal").addEventListener("click", event => {
       if (event.target.id === "inquiry-modal") closeInquiryDetail();
