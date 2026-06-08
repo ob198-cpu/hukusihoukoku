@@ -1230,6 +1230,8 @@
           <div class="follower-chart-legend" id="follower-chart-legend"></div>
           <div class="follower-chart-bars" id="follower-chart-bars"></div>
         </div>
+        <h3 class="summary-section-title">作品別インプレッション推移</h3>
+        <div id="summary-work-metrics"></div>
         <div class="summary-section-head">
           <h3 class="summary-section-title" id="summary-breakdown-title">週別内訳</h3>
           <div class="summary-mode-tabs" aria-label="内訳表示単位">
@@ -1872,6 +1874,7 @@
         </tr>`;
       }).join("");
       renderFollowerSummary(selectedBusiness);
+      renderSummaryWorkMetrics();
       const periodLabel = summaryBreakdownLabels()[summaryBreakdownMode];
       $("#summary-breakdown-title").textContent = `${periodLabel}内訳`;
       $("#summary-date-head").innerHTML = `
@@ -1898,6 +1901,10 @@
       `).join("") || `<tr><td colspan="10">データはありません。</td></tr>`;
       $("#summary-total-impressions").textContent = `${allImpressions.toLocaleString()}回`;
       $("#summary-total-followers").textContent = `${allFollowers.toLocaleString()}人`;
+    }
+
+    function renderSummaryWorkMetrics() {
+      $("#summary-work-metrics").innerHTML = workMetricTableHtml(data.workMetrics);
     }
 
     function renderFollowerSummary(selectedBusiness) {
