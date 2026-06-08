@@ -613,6 +613,44 @@
       background: var(--navy);
     }
 
+    .summary-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 14px;
+    }
+
+    .summary-tab {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 18px;
+      color: var(--navy);
+      background: #fff;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .summary-tab.active {
+      color: #fff;
+      border-color: var(--navy);
+      background: var(--navy);
+    }
+
+    .summary-panel {
+      display: none;
+    }
+
+    .summary-panel.active {
+      display: block;
+    }
+
+    .summary-limit-note {
+      margin: 8px 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
     .stack.input-form-panel {
       display: none;
     }
@@ -1204,72 +1242,92 @@
         </div>
       </div>
       <div class="panel">
-        <div class="kpi-grid">
-          <div class="kpi">
-            <span>創業から今日まで 総インプレッション数</span>
-            <strong id="summary-total-impressions">0回</strong>
-          </div>
-          <div class="kpi">
-            <span>今日時点 総フォロワー数</span>
-            <strong id="summary-total-followers">0人</strong>
-          </div>
+        <div class="summary-tabs" aria-label="集計表示切替">
+          <button class="summary-tab active" type="button" data-summary-tab="overview">概要</button>
+          <button class="summary-tab" type="button" data-summary-tab="followers">フォロワー</button>
+          <button class="summary-tab" type="button" data-summary-tab="works">作品別推移</button>
+          <button class="summary-tab" type="button" data-summary-tab="breakdown">投稿・問い合わせ内訳</button>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>創業から今日まで 総インプレッション/再生数</th><th>今日時点 総フォロワー数</th><th>問い合わせ</th><th>利用者問い合わせ</th><th>職員問い合わせ</th><th>L前週送信数</th><th>L今週送信数</th><th>L残通数</th>
-            </tr>
-          </thead>
-          <tbody id="summary-body"></tbody>
-        </table>
-        <h3 class="summary-section-title">フォロワー推移</h3>
-        <div class="follower-summary-grid">
-          <div>
-            <h4>週次</h4>
-            <div class="summary-breakdown-table">
-              <table>
-                <thead>
-                  <tr><th>週</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
-                </thead>
-                <tbody id="follower-week-body"></tbody>
-              </table>
+
+        <div class="summary-panel active" data-summary-panel="overview">
+          <div class="kpi-grid">
+            <div class="kpi">
+              <span>創業から今日まで 総インプレッション数</span>
+              <strong id="summary-total-impressions">0回</strong>
+            </div>
+            <div class="kpi">
+              <span>今日時点 総フォロワー数</span>
+              <strong id="summary-total-followers">0人</strong>
             </div>
           </div>
-          <div>
-            <h4>月次</h4>
-            <div class="summary-breakdown-table">
-              <table>
-                <thead>
-                  <tr><th>月</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
-                </thead>
-                <tbody id="follower-month-body"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <div class="follower-chart" style="margin-top:14px;">
-          <div class="follower-chart-legend" id="follower-chart-legend"></div>
-          <div class="follower-chart-bars" id="follower-chart-bars"></div>
-        </div>
-        <h3 class="summary-section-title">作品別インプレッション推移</h3>
-        <div id="summary-work-metrics"></div>
-        <div class="summary-section-head">
-          <h3 class="summary-section-title" id="summary-breakdown-title">週別内訳</h3>
-          <div class="summary-mode-tabs" aria-label="内訳表示単位">
-            <button class="summary-mode-btn" type="button" data-summary-mode="day">日別</button>
-            <button class="summary-mode-btn active" type="button" data-summary-mode="week">週別</button>
-            <button class="summary-mode-btn" type="button" data-summary-mode="month">月別</button>
-          </div>
-        </div>
-        <div class="summary-breakdown-table">
           <table>
-            <thead id="summary-date-head">
-            <tr>
-              <th>週</th><th>投稿数</th><th>X</th><th>Instagram</th><th>TikTok</th><th>Threads</th><th>YouTube</th><th>合計Imp/再生</th><th>問い合わせ</th><th>L送信数</th>
-            </tr>
+            <thead>
+              <tr>
+                <th>創業から今日まで 総インプレッション/再生数</th><th>今日時点 総フォロワー数</th><th>問い合わせ</th><th>利用者問い合わせ</th><th>職員問い合わせ</th><th>L前週送信数</th><th>L今週送信数</th><th>L残通数</th>
+              </tr>
             </thead>
-            <tbody id="summary-date-body"></tbody>
+            <tbody id="summary-body"></tbody>
           </table>
+        </div>
+
+        <div class="summary-panel" data-summary-panel="followers">
+          <h3 class="summary-section-title">フォロワー推移</h3>
+          <div class="follower-summary-grid">
+            <div>
+              <h4>週次</h4>
+              <div class="summary-breakdown-table">
+                <table>
+                  <thead>
+                    <tr><th>週</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
+                  </thead>
+                  <tbody id="follower-week-body"></tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <h4>月次</h4>
+              <div class="summary-breakdown-table">
+                <table>
+                  <thead>
+                    <tr><th>月</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
+                  </thead>
+                  <tbody id="follower-month-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="follower-chart" style="margin-top:14px;">
+            <div class="follower-chart-legend" id="follower-chart-legend"></div>
+            <div class="follower-chart-bars" id="follower-chart-bars"></div>
+          </div>
+        </div>
+
+        <div class="summary-panel" data-summary-panel="works">
+          <h3 class="summary-section-title">作品別インプレッション推移</h3>
+          <p class="summary-limit-note">表示は最新12回分です。全期間のデータはExcel出力で確認します。</p>
+          <div id="summary-work-metrics"></div>
+        </div>
+
+        <div class="summary-panel" data-summary-panel="breakdown">
+          <div class="summary-section-head">
+            <h3 class="summary-section-title" id="summary-breakdown-title">週別内訳</h3>
+            <div class="summary-mode-tabs" aria-label="内訳表示単位">
+              <button class="summary-mode-btn" type="button" data-summary-mode="day">日別</button>
+              <button class="summary-mode-btn active" type="button" data-summary-mode="week">週別</button>
+              <button class="summary-mode-btn" type="button" data-summary-mode="month">月別</button>
+            </div>
+          </div>
+          <p class="summary-limit-note">表示は最新120行までです。長期データは月別表示またはExcel出力で確認します。</p>
+          <div class="summary-breakdown-table">
+            <table>
+              <thead id="summary-date-head">
+              <tr>
+                <th>週</th><th>投稿数</th><th>X</th><th>Instagram</th><th>TikTok</th><th>Threads</th><th>YouTube</th><th>合計Imp/再生</th><th>問い合わせ</th><th>L送信数</th>
+              </tr>
+              </thead>
+              <tbody id="summary-date-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
@@ -1300,6 +1358,8 @@
     const snsTypes = ["X", "Instagram", "TikTok", "Threads", "YouTube"];
     const inquiryTypes = ["利用者問い合わせ", "職員問い合わせ", "その他"];
     const inquiryStatuses = ["未対応", "対応中", "対応済", "保留"];
+    const SUMMARY_ROW_LIMIT = 120;
+    const WORK_DATE_LIMIT = 12;
     let postSort = { key: "date", direction: "desc" };
     let summaryBreakdownMode = "week";
 
@@ -1731,7 +1791,7 @@
     }
 
     function workMetricTableHtml(rows) {
-      const dates = Array.from(new Set(rows.map(row => row.date).filter(Boolean))).sort();
+      const dates = Array.from(new Set(rows.map(row => row.date).filter(Boolean))).sort().slice(-WORK_DATE_LIMIT);
       const works = Array.from(new Set(rows.map(row => row.workName).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja", { numeric: true }));
       const valueMap = new Map();
       rows.forEach(row => {
@@ -1919,7 +1979,7 @@
       $$("[data-summary-mode]").forEach(button => {
         button.classList.toggle("active", button.dataset.summaryMode === summaryBreakdownMode);
       });
-      $("#summary-date-body").innerHTML = summaryDateRows(selectedBusiness, summaryBreakdownMode).map(row => `
+      $("#summary-date-body").innerHTML = summaryDateRows(selectedBusiness, summaryBreakdownMode).slice(0, SUMMARY_ROW_LIMIT).map(row => `
         <tr>
           <td>${escapeHtml(row.label)}</td>
           <td>${row.posts}</td>
@@ -2186,8 +2246,14 @@
     function showSummaryBreakdown() {
       $$(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.view === "summary"));
       $$(".view").forEach(view => view.classList.toggle("active", view.id === "view-summary"));
+      setSummaryTab("breakdown");
       renderSummary();
       $("#summary-date-body").closest(".summary-breakdown-table").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function setSummaryTab(name) {
+      $$("[data-summary-tab]").forEach(tab => tab.classList.toggle("active", tab.dataset.summaryTab === name));
+      $$("[data-summary-panel]").forEach(panel => panel.classList.toggle("active", panel.dataset.summaryPanel === name));
     }
 
     function formObject(form) {
@@ -2318,6 +2384,9 @@
         summaryBreakdownMode = button.dataset.summaryMode;
         renderSummary();
       });
+    });
+    $$("[data-summary-tab]").forEach(button => {
+      button.addEventListener("click", () => setSummaryTab(button.dataset.summaryTab));
     });
     $("#close-inquiry-modal").addEventListener("click", closeInquiryDetail);
     $("#inquiry-modal").addEventListener("click", event => {
