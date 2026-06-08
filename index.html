@@ -1012,6 +1012,7 @@
         <div>
           <div class="input-tabs">
             <button class="input-tab active" type="button" data-input-tab="post">投稿入力</button>
+            <button class="input-tab" type="button" data-input-tab="work">作品別推移</button>
             <button class="input-tab" type="button" data-input-tab="follower">フォロワー管理</button>
             <button class="input-tab" type="button" data-input-tab="inquiry">問い合わせ入力</button>
             <button class="input-tab" type="button" data-input-tab="lstep">Lステップ管理</button>
@@ -1030,6 +1031,36 @@
               <label>入力者<input type="text" name="operator" required></label>
             </div>
             <button class="btn primary" type="submit">投稿を登録</button>
+          </form>
+
+          <form class="panel stack input-form-panel" id="work-form" data-input-panel="work">
+            <h3>作品別推移入力</h3>
+            <div class="grid-2">
+              <label>確認日<input type="date" name="date" required></label>
+              <label>入力者<input type="text" name="operator" required></label>
+            </div>
+            <fieldset class="field-group">
+              <legend>作品ごとのインプレッション/再生数</legend>
+              <div class="follower-bulk-grid" id="work-metric-body">
+                <div class="follower-bulk-row">
+                  <input type="text" name="workName" value="投稿1" aria-label="作品名1">
+                  <input type="number" min="0" name="workValue" value="0" aria-label="投稿1の数値">
+                </div>
+                <div class="follower-bulk-row">
+                  <input type="text" name="workName" value="投稿2" aria-label="作品名2">
+                  <input type="number" min="0" name="workValue" value="0" aria-label="投稿2の数値">
+                </div>
+                <div class="follower-bulk-row">
+                  <input type="text" name="workName" value="投稿3" aria-label="作品名3">
+                  <input type="number" min="0" name="workValue" value="0" aria-label="投稿3の数値">
+                </div>
+                <div class="follower-bulk-row">
+                  <input type="text" name="workName" value="投稿4" aria-label="作品名4">
+                  <input type="number" min="0" name="workValue" value="0" aria-label="投稿4の数値">
+                </div>
+              </div>
+            </fieldset>
+            <button class="btn primary" type="submit">作品別推移を登録</button>
           </form>
 
           <form class="panel stack input-form-panel" id="follower-form" data-input-panel="follower">
@@ -1090,6 +1121,7 @@
           </div>
           <div class="input-tabs">
             <button class="input-tab active" type="button" data-record-tab="post">投稿入力</button>
+            <button class="input-tab" type="button" data-record-tab="work">作品別推移</button>
             <button class="input-tab" type="button" data-record-tab="follower">フォロワー管理</button>
             <button class="input-tab" type="button" data-record-tab="inquiry">問い合わせ入力</button>
             <button class="input-tab" type="button" data-record-tab="lstep">Lステップ管理</button>
@@ -1315,6 +1347,16 @@
       return {
         accounts: defaultAccounts(),
         posts,
+        workMetrics: [
+          { id: uid(), date: "2026-06-03", workName: "投稿1", impressions: 100, operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, 0).toISOString() },
+          { id: uid(), date: "2026-06-03", workName: "投稿2", impressions: 100, operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, 0).toISOString() },
+          { id: uid(), date: "2026-06-03", workName: "投稿3", impressions: 100, operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, 0).toISOString() },
+          { id: uid(), date: "2026-06-03", workName: "投稿4", impressions: 100, operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, 0).toISOString() },
+          { id: uid(), date: "2026-06-10", workName: "投稿1", impressions: 200, operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, 0).toISOString() },
+          { id: uid(), date: "2026-06-10", workName: "投稿2", impressions: 200, operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, 0).toISOString() },
+          { id: uid(), date: "2026-06-10", workName: "投稿3", impressions: 200, operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, 0).toISOString() },
+          { id: uid(), date: "2026-06-10", workName: "投稿4", impressions: 200, operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, 0).toISOString() }
+        ],
         followers: businesses.map((business, bIndex) => ({
           id: uid(),
           date: weekEnd,
@@ -1348,11 +1390,12 @@
         const loaded = {
           accounts: parsed.accounts?.length ? parsed.accounts : defaultAccounts(),
           posts: parsed.posts || [],
+          workMetrics: parsed.workMetrics || [],
           followers: parsed.followers || [],
           inquiries: parsed.inquiries || [],
           lsteps: parsed.lsteps || []
         };
-        if (!loaded.posts.length && !loaded.followers.length && !loaded.inquiries.length && !loaded.lsteps.length) {
+        if (!loaded.posts.length && !loaded.workMetrics.length && !loaded.followers.length && !loaded.inquiries.length && !loaded.lsteps.length) {
           const data = sampleData();
           saveData(data);
           return data;
@@ -1609,11 +1652,13 @@
       const active = document.querySelector("[data-record-tab].active")?.dataset.recordTab || "post";
       const sortedPosts = sortedPostRows();
       const { start, end } = recordWeekDefaults();
+      const workRows = data.workMetrics.filter(item => isRecordAllMode() || (item.date >= start && item.date <= end));
       const followerRows = data.followers.filter(item => isRecordAllMode() || (item.date >= start && item.date <= end));
       const weeklyInquiries = data.inquiries.filter(item => isRecordAllMode() || (item.weekStart === start && item.weekEnd === end));
       const weeklyLsteps = data.lsteps.filter(item => isRecordAllMode() || (item.weekStart === start && item.weekEnd === end));
       const tables = {
         post: `<h3>投稿 ${recordCountLabel(sortedPosts.length)}</h3>${postTableHtml(sortedPosts.slice(0, 30))}`,
+        work: `<h3>作品別推移 ${recordCountLabel(workRows.length)}</h3>${workMetricTableHtml(workRows)}`,
         follower: `<h3>フォロワー ${recordCountLabel(followerRows.length)}</h3>${tableHtml(["投稿日", "フォロワー数", "入力者", "入力時間"], followerRows.slice().reverse().slice(0, 30).map(item => [dateLabel(item.date), Number(item.followers || 0).toLocaleString(), item.operator, fullDateTime(item.inputAt)]))}`,
         inquiry: `<h3>問い合わせ ${recordCountLabel(weeklyInquiries.length)}</h3>${tableHtml(["投稿日", "SNS", "区分", "内容", "対応", "入力者", "入力時間"], weeklyInquiries.slice().reverse().slice(0, 20).map(i => [dateLabel(i.date), i.sns, i.type, i.content, i.status, i.operator, fullDateTime(i.inputAt)]))}`,
         lstep: `<h3>Lステップ ${recordCountLabel(weeklyLsteps.length)}</h3>${tableHtml(["週", "前週送信数", "今週送信数", "残通数", "入力者", "入力時間"], weeklyLsteps.slice().reverse().slice(0, 20).map(l => {
@@ -1622,9 +1667,30 @@
         }))}`
       };
       $("#record-tables").innerHTML = tables[active] || tables.post;
-      const labels = { post: "投稿入力", follower: "フォロワー管理", inquiry: "問い合わせ入力", lstep: "Lステップ管理" };
+      const labels = { post: "投稿入力", work: "作品別推移", follower: "フォロワー管理", inquiry: "問い合わせ入力", lstep: "Lステップ管理" };
       $("#export-excel").textContent = `${labels[active] || "投稿入力"}をExcel出力`;
       if (active === "post") bindPostSortHeaders();
+    }
+
+    function workMetricTableHtml(rows) {
+      const dates = Array.from(new Set(rows.map(row => row.date).filter(Boolean))).sort();
+      const works = Array.from(new Set(rows.map(row => row.workName).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja", { numeric: true }));
+      const valueMap = new Map();
+      rows.forEach(row => {
+        const key = `${row.workName}__${row.date}`;
+        valueMap.set(key, (Number(valueMap.get(key) || 0) + Number(row.impressions || 0)));
+      });
+      if (!dates.length || !works.length) {
+        return tableHtml(["作品名", "数値"], []);
+      }
+      const headers = ["作品名", ...dates.map(dateLabel), "合計"];
+      const bodyRows = works.map(work => {
+        const values = dates.map(date => Number(valueMap.get(`${work}__${date}`) || 0));
+        return [work, ...values.map(value => value.toLocaleString()), values.reduce((sum, value) => sum + value, 0).toLocaleString()];
+      });
+      const totalRow = ["合計", ...dates.map(date => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${date}`) || 0), 0).toLocaleString())];
+      totalRow.push(rows.reduce((sum, row) => sum + Number(row.impressions || 0), 0).toLocaleString());
+      return tableHtml(headers, [...bodyRows, totalRow]);
     }
 
     function recordCountLabel(count) {
@@ -2062,6 +2128,30 @@
       renderAll();
     });
 
+    $("#work-form").addEventListener("submit", event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const value = formObject(form);
+      const names = Array.from(form.querySelectorAll("input[name='workName']")).map(input => input.value.trim());
+      const values = Array.from(form.querySelectorAll("input[name='workValue']")).map(input => Number(input.value || 0));
+      const inputAt = new Date().toISOString();
+      names.forEach((workName, index) => {
+        if (!workName) return;
+        data.workMetrics.push({
+          id: uid(),
+          date: value.date,
+          workName,
+          impressions: values[index] || 0,
+          operator: value.operator,
+          inputAt
+        });
+      });
+      saveData(data);
+      form.reset();
+      setupForms();
+      renderAll();
+    });
+
     $("#follower-form").addEventListener("submit", event => {
       event.preventDefault();
       const value = formObject(event.currentTarget);
@@ -2213,6 +2303,30 @@
           rows: [
             ["投稿日", "フォロワー数", "入力者", "入力時間"],
             ...rows.map(item => [item.date, item.followers, item.operator, fullDateTime(item.inputAt)])
+          ]
+        };
+      }
+      if (type === "work") {
+        const rows = data.workMetrics.filter(item => isRecordAllMode() || (item.date >= start && item.date <= end));
+        const dates = Array.from(new Set(rows.map(row => row.date).filter(Boolean))).sort();
+        const works = Array.from(new Set(rows.map(row => row.workName).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja", { numeric: true }));
+        const valueMap = new Map();
+        rows.forEach(row => {
+          const key = `${row.workName}__${row.date}`;
+          valueMap.set(key, Number(valueMap.get(key) || 0) + Number(row.impressions || 0));
+        });
+        const pivotRows = works.map(work => {
+          const values = dates.map(date => Number(valueMap.get(`${work}__${date}`) || 0));
+          return [work, ...values, values.reduce((sum, value) => sum + value, 0)];
+        });
+        const totalRow = ["合計", ...dates.map(date => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${date}`) || 0), 0))];
+        totalRow.push(rows.reduce((sum, row) => sum + Number(row.impressions || 0), 0));
+        return {
+          name: "作品別推移",
+          rows: [
+            ["作品名", ...dates.map(dateLabel), "合計"],
+            ...pivotRows,
+            ...(rows.length ? [totalRow] : [])
           ]
         };
       }
