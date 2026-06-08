@@ -1304,6 +1304,11 @@
 
         <div class="summary-panel" data-summary-panel="works">
           <h3 class="summary-section-title">作品別インプレッション推移</h3>
+          <div class="summary-mode-tabs" aria-label="作品別推移の表示単位">
+            <button class="summary-mode-btn active" type="button" data-work-mode="day">日別</button>
+            <button class="summary-mode-btn" type="button" data-work-mode="week">週別</button>
+            <button class="summary-mode-btn" type="button" data-work-mode="month">月別</button>
+          </div>
           <p class="summary-limit-note">表示は最新12回分です。全期間のデータはExcel出力で確認します。</p>
           <div id="summary-work-metrics"></div>
         </div>
@@ -1362,6 +1367,7 @@
     const WORK_DATE_LIMIT = 12;
     let postSort = { key: "date", direction: "desc" };
     let summaryBreakdownMode = "week";
+    let workBreakdownMode = "day";
 
     const $ = selector => document.querySelector(selector);
     const $$ = selector => Array.from(document.querySelectorAll(selector));
@@ -1823,29 +1829,39 @@
       if (active === "post") bindPostSortHeaders();
     }
 
-    function workMetricTableHtml(rows) {
-      const dates = Array.from(new Set(rows.map(row => row.date).filter(Boolean))).sort().slice(-WORK_DATE_LIMIT);
+    function workMetricTableHtml(rows, mode = workBreakdownMode) {
+      const periodMap = new Map();
+      rows.forEach(row => {
+        if (!row.date) return;
+        const period = summaryPeriodInfo(row.date, mode);
+        if (period.key) periodMap.set(period.key, period.label);
+      });
+      const periods = Array.from(periodMap.entries()).sort(([a], [b]) => a.localeCompare(b)).slice(-WORK_DATE_LIMIT);
+      const periodKeys = periods.map(([key]) => key);
       const works = Array.from(new Set(rows.map(row => row.workName).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja", { numeric: true }));
       const valueMap = new Map();
       rows.forEach(row => {
-        const key = `${row.workName}__${row.date}`;
+        if (!row.workName || !row.date) return;
+        const period = summaryPeriodInfo(row.date, mode);
+        const key = `${row.workName}__${period.key}`;
         valueMap.set(key, (Number(valueMap.get(key) || 0) + Number(row.impressions || 0)));
       });
-      if (!dates.length || !works.length) {
+      if (!periods.length || !works.length) {
         return tableHtml(["作品名", "数値"], []);
       }
-      const headers = ["作品名", ...dates.map(dateLabel), "合計"];
+      const headers = ["作品名", ...periods.map(([, label]) => label), "合計"];
       const bodyRows = works.map(work => {
-        const values = dates.map(date => Number(valueMap.get(`${work}__${date}`) || 0));
+        const values = periodKeys.map(key => Number(valueMap.get(`${work}__${key}`) || 0));
         return [work, ...values.map(value => value.toLocaleString()), values.reduce((sum, value) => sum + value, 0).toLocaleString()];
       });
-      const totalRow = ["合計", ...dates.map(date => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${date}`) || 0), 0).toLocaleString())];
+      const totalRow = ["合計", ...periodKeys.map(key => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${key}`) || 0), 0).toLocaleString())];
       totalRow.push(rows.reduce((sum, row) => sum + Number(row.impressions || 0), 0).toLocaleString());
-      return workMetricChartHtml(dates, works, valueMap) + tableHtml(headers, [...bodyRows, totalRow]);
+      return workMetricChartHtml(periods, works, valueMap) + tableHtml(headers, [...bodyRows, totalRow]);
     }
 
-    function workMetricChartHtml(dates, works, valueMap) {
-      const totals = dates.map(date => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${date}`) || 0), 0));
+    function workMetricChartHtml(periods, works, valueMap) {
+      const periodKeys = periods.map(([key]) => key);
+      const totals = periodKeys.map(key => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${key}`) || 0), 0));
       const max = Math.max(...totals, 1);
       return `
         <div class="work-chart">
@@ -1853,11 +1869,11 @@
             ${works.map((work, index) => `<span><i style="background:${workColor(index)}"></i>${escapeHtml(work)}</span>`).join("")}
           </div>
           <div class="work-chart-bars">
-            ${dates.map((date, index) => {
+            ${periods.map(([key, label], index) => {
               const total = totals[index] || 0;
               const height = Math.max(12, Math.round((total / max) * 150));
               const segments = works.map((work, workIndex) => {
-                const value = Number(valueMap.get(`${work}__${date}`) || 0);
+                const value = Number(valueMap.get(`${work}__${key}`) || 0);
                 if (!value) return "";
                 const segmentHeight = total ? Math.max(18, Math.round((value / total) * height)) : 0;
                 return `<div class="work-segment" title="${escapeHtml(work)} ${value.toLocaleString()}" style="height:${segmentHeight}px; background:${workColor(workIndex)}">${value.toLocaleString()}</div>`;
@@ -1866,7 +1882,7 @@
                 <div class="work-chart-col">
                   <div class="work-chart-bar" style="height:${height}px">${segments}</div>
                   <div class="follower-chart-label">合計 ${total.toLocaleString()}</div>
-                  <div class="follower-chart-label">${dateLabel(date)}</div>
+                  <div class="follower-chart-label">${escapeHtml(label)}</div>
                 </div>
               `;
             }).join("")}
@@ -2031,7 +2047,10 @@
     }
 
     function renderSummaryWorkMetrics() {
-      $("#summary-work-metrics").innerHTML = workMetricTableHtml(data.workMetrics);
+      $$("[data-work-mode]").forEach(button => {
+        button.classList.toggle("active", button.dataset.workMode === workBreakdownMode);
+      });
+      $("#summary-work-metrics").innerHTML = workMetricTableHtml(data.workMetrics, workBreakdownMode);
     }
 
     function renderFollowerSummary(selectedBusiness) {
@@ -2416,6 +2435,12 @@
       button.addEventListener("click", () => {
         summaryBreakdownMode = button.dataset.summaryMode;
         renderSummary();
+      });
+    });
+    $$("[data-work-mode]").forEach(button => {
+      button.addEventListener("click", () => {
+        workBreakdownMode = button.dataset.workMode;
+        renderSummaryWorkMetrics();
       });
     });
     $$("[data-summary-tab]").forEach(button => {
