@@ -317,13 +317,10 @@
     }
 
     .total-detail-link {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 8px;
-      padding: 4px 8px;
+      display: inline;
+      margin-left: 6px;
+      padding: 0;
       color: var(--navy);
-      background: #f8d6d6;
       font-size: 14px;
       font-weight: 900;
       text-decoration: underline;
@@ -331,61 +328,68 @@
     }
 
     .total-detail-link:hover {
-      background: #f2bcbc;
+      color: var(--blue);
     }
 
     .pie-wrap {
-      position: relative;
+      display: grid;
+      justify-items: center;
+      gap: 10px;
       width: 330px;
-      height: 230px;
+      min-height: 230px;
     }
 
     .pie-caption {
-      position: absolute;
-      left: 0;
-      top: 18px;
+      justify-self: start;
+      margin-left: 12px;
       color: #777;
       font-size: 12px;
+      font-weight: 700;
     }
 
     .pie-chart {
-      position: absolute;
-      left: 70px;
-      top: 40px;
-      width: 190px;
-      height: 190px;
+      position: relative;
+      width: 176px;
+      height: 176px;
       border-radius: 50%;
-      background: conic-gradient(#5f9bb5 0 18%, #064c62 18% 46%, #ff7733 46% 55%, #26848d 55% 84%, #1d4fb6 84% 100%);
+      background:
+        radial-gradient(circle at center, #fff 0 44%, transparent 45%),
+        conic-gradient(#5f9bb5 0 18.5%, #064c62 18.5% 46.2%, #ff7733 46.2% 55.4%, #26848d 55.4% 84.6%, #1d4fb6 84.6% 100%);
+      box-shadow: 0 8px 18px rgba(0, 33, 64, 0.12);
     }
 
-    .pie-label {
+    .pie-chart::after {
+      content: "";
       position: absolute;
-      z-index: 2;
-      width: 76px;
-      color: #333;
-      font-size: 9px;
-      line-height: 1.15;
-      background: #fff;
+      inset: 13px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 33, 64, 0.08);
     }
 
-    .pie-label.instagram { right: -4px; top: 48px; padding-left: 5px; }
-    .pie-label.x { right: -4px; top: 148px; padding-left: 5px; }
-    .pie-label.tiktok { left: 0; top: 178px; padding-right: 5px; }
-    .pie-label.threads { left: 0; top: 112px; padding-right: 5px; }
-    .pie-label.youtube { left: 0; top: 48px; padding-right: 5px; }
-
-    .pie-line {
-      position: absolute;
-      height: 1px;
-      background: #aaa;
-      transform-origin: left center;
+    .pie-legend {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px 12px;
+      width: 300px;
+      font-size: 11px;
+      line-height: 1.2;
     }
 
-    .line-instagram { left: 250px; top: 58px; width: 66px; }
-    .line-x { left: 246px; top: 153px; width: 66px; }
-    .line-tiktok { left: 74px; top: 188px; width: 36px; }
-    .line-threads { left: 76px; top: 123px; width: 30px; }
-    .line-youtube { left: 78px; top: 59px; width: 28px; }
+    .pie-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      color: #17324d;
+      font-weight: 800;
+    }
+
+    .pie-legend i {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex: 0 0 auto;
+    }
 
     .period-title {
       margin: 0 0 14px 34px;
@@ -1844,14 +1848,15 @@
 
     function renderPie(selector) {
       $(selector).innerHTML = `
-        <span class="pie-caption">得点</span>
+        <span class="pie-caption">SNS別構成</span>
         <div class="pie-chart"></div>
-        <span class="pie-line line-instagram"></span><span class="pie-line line-x"></span><span class="pie-line line-tiktok"></span><span class="pie-line line-threads"></span><span class="pie-line line-youtube"></span>
-        <span class="pie-label instagram">instagram<br>18.5%</span>
-        <span class="pie-label x">X<br>27.7%</span>
-        <span class="pie-label tiktok">tiktok<br>9.2%</span>
-        <span class="pie-label threads">threads<br>29.2%</span>
-        <span class="pie-label youtube">youtubeショート<br>15.4%</span>
+        <div class="pie-legend">
+          <span><i style="background:#5f9bb5"></i>Instagram 18.5%</span>
+          <span><i style="background:#064c62"></i>X 27.7%</span>
+          <span><i style="background:#ff7733"></i>TikTok 9.2%</span>
+          <span><i style="background:#26848d"></i>Threads 29.2%</span>
+          <span><i style="background:#1d4fb6"></i>YouTube 15.4%</span>
+        </div>
       `;
     }
 
