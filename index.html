@@ -827,6 +827,44 @@
       vertical-align: middle;
     }
 
+    .work-chart {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      margin: 8px 0 14px;
+      background: #fff;
+    }
+
+    .work-chart-bars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+      gap: 12px;
+      align-items: end;
+      min-height: 180px;
+      padding-top: 10px;
+      border-bottom: 2px solid #8fa5bb;
+    }
+
+    .work-chart-col {
+      display: grid;
+      align-items: end;
+      gap: 6px;
+      min-height: 168px;
+    }
+
+    .work-chart-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      min-height: 12px;
+      border-radius: 5px 5px 0 0;
+      background: #1f5b96;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      padding-top: 5px;
+    }
+
     .print-note {
       margin: 12px 0 0;
       color: var(--muted);
@@ -1234,7 +1272,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "sns_operation_report_single_site_v1";
+    const STORAGE_KEY = "sns_operation_report_single_site_v2";
     const businesses = ["自事業所"];
     const snsTypes = ["X", "Instagram", "TikTok", "Threads", "YouTube"];
     const inquiryTypes = ["利用者問い合わせ", "職員問い合わせ", "その他"];
@@ -1348,23 +1386,20 @@
         accounts: defaultAccounts(),
         posts,
         workMetrics: [
-          { id: uid(), date: "2026-06-03", workName: "投稿1", impressions: 100, operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, 0).toISOString() },
-          { id: uid(), date: "2026-06-03", workName: "投稿2", impressions: 100, operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, 0).toISOString() },
-          { id: uid(), date: "2026-06-03", workName: "投稿3", impressions: 100, operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, 0).toISOString() },
-          { id: uid(), date: "2026-06-03", workName: "投稿4", impressions: 100, operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, 0).toISOString() },
-          { id: uid(), date: "2026-06-10", workName: "投稿1", impressions: 200, operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, 0).toISOString() },
-          { id: uid(), date: "2026-06-10", workName: "投稿2", impressions: 200, operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, 0).toISOString() },
-          { id: uid(), date: "2026-06-10", workName: "投稿3", impressions: 200, operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, 0).toISOString() },
-          { id: uid(), date: "2026-06-10", workName: "投稿4", impressions: 200, operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, 0).toISOString() }
+          ...["投稿1", "投稿2", "投稿3", "投稿4"].flatMap((workName, index) => [
+            { id: uid(), date: "2026-06-03", workName, impressions: [100, 120, 90, 80][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, index).toISOString() },
+            { id: uid(), date: "2026-06-08", workName, impressions: [160, 180, 140, 130][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 8, 10, index).toISOString() },
+            { id: uid(), date: "2026-06-10", workName, impressions: [200, 230, 210, 190][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, index).toISOString() },
+            { id: uid(), date: "2026-06-12", workName, impressions: [300, 280, 260, 240][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 12, 10, index).toISOString() }
+          ])
         ],
-        followers: businesses.map((business, bIndex) => ({
-          id: uid(),
-          date: weekEnd,
-          business,
-          followers: 3320 + bIndex * 110,
-          operator: "入力者サンプル",
-          inputAt: new Date(2026, 4, 31, 10, 55 + bIndex).toISOString()
-        })),
+        followers: [
+          { id: uid(), date: "2026-05-17", business: businesses[0], followers: 3180, operator: "入力者サンプル", inputAt: new Date(2026, 4, 17, 10, 0).toISOString() },
+          { id: uid(), date: "2026-05-24", business: businesses[0], followers: 3240, operator: "入力者サンプル", inputAt: new Date(2026, 4, 24, 10, 0).toISOString() },
+          { id: uid(), date: "2026-05-31", business: businesses[0], followers: 3320, operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 10, 0).toISOString() },
+          { id: uid(), date: "2026-06-07", business: businesses[0], followers: 3415, operator: "入力者サンプル", inputAt: new Date(2026, 5, 7, 10, 0).toISOString() },
+          { id: uid(), date: "2026-06-08", business: businesses[0], followers: 3440, operator: "入力者サンプル", inputAt: new Date(2026, 5, 8, 10, 0).toISOString() }
+        ],
         inquiries: [
           { id: uid(), weekStart, weekEnd, date: "2026-05-26", business: businesses[0], sns: "Instagram", type: "利用者問い合わせ", content: "見学希望のDM", status: "対応中", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 0).toISOString() },
           { id: uid(), weekStart, weekEnd, date: "2026-05-27", business: businesses[0], sns: "X", type: "職員問い合わせ", content: "投稿内容の確認依頼", status: "対応済", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 5).toISOString() },
@@ -1690,7 +1725,29 @@
       });
       const totalRow = ["合計", ...dates.map(date => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${date}`) || 0), 0).toLocaleString())];
       totalRow.push(rows.reduce((sum, row) => sum + Number(row.impressions || 0), 0).toLocaleString());
-      return tableHtml(headers, [...bodyRows, totalRow]);
+      return workMetricChartHtml(dates, works, valueMap) + tableHtml(headers, [...bodyRows, totalRow]);
+    }
+
+    function workMetricChartHtml(dates, works, valueMap) {
+      const totals = dates.map(date => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${date}`) || 0), 0));
+      const max = Math.max(...totals, 1);
+      return `
+        <div class="work-chart">
+          <div class="follower-chart-legend"><span><i style="background:#1f5b96"></i>日付別 合計インプレッション/再生数</span></div>
+          <div class="work-chart-bars">
+            ${dates.map((date, index) => {
+              const total = totals[index] || 0;
+              const height = Math.max(12, Math.round((total / max) * 150));
+              return `
+                <div class="work-chart-col">
+                  <div class="work-chart-bar" style="height:${height}px">${total.toLocaleString()}</div>
+                  <div class="follower-chart-label">${dateLabel(date)}</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `;
     }
 
     function recordCountLabel(count) {
