@@ -756,6 +756,77 @@
       margin: 0;
     }
 
+    .follower-summary-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .follower-chart {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .follower-chart-bars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+      gap: 12px;
+      align-items: end;
+      min-height: 230px;
+      padding: 10px 0 0;
+      border-bottom: 2px solid #8fa5bb;
+    }
+
+    .follower-chart-col {
+      display: grid;
+      align-items: end;
+      gap: 6px;
+      min-height: 210px;
+    }
+
+    .follower-bar {
+      display: grid;
+      align-content: end;
+      min-height: 12px;
+      border-radius: 5px 5px 0 0;
+      overflow: hidden;
+      background: #d9e6f2;
+    }
+
+    .follower-bar span {
+      display: block;
+      width: 100%;
+    }
+
+    .follower-chart-label {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .follower-chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .follower-chart-legend i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 4px;
+      border-radius: 2px;
+      vertical-align: middle;
+    }
+
     .print-note {
       margin: 12px 0 0;
       color: var(--muted);
@@ -920,7 +991,7 @@
             </div>
             <div class="large-outline-box">
               <div class="box-head">
-                <h3>問い合わせ、DM</h3>
+                <h3>問い合わせ内容</h3>
                 <button type="button" class="detail-mini-btn" id="inquiry-detail-button-bottom">詳細</button>
               </div>
               <div class="inquiry-mini-table" id="inquiry-report"></div>
@@ -951,8 +1022,6 @@
               <label>週開始日<input type="date" name="weekStart" required></label>
               <label>週終了日<input type="date" name="weekEnd" required></label>
               <label>投稿日<input type="date" name="date" required></label>
-              <label>事業者<select name="business" required></select></label>
-              <label>アカウント名<select name="account" required></select></label>
               <label>SNS種別<select name="sns" required></select></label>
               <label>インプレッション/再生数<input type="number" name="impressions" min="0" value="0"></label>
             </div>
@@ -1064,6 +1133,35 @@
           </thead>
           <tbody id="summary-body"></tbody>
         </table>
+        <h3 class="summary-section-title">フォロワー推移</h3>
+        <div class="follower-summary-grid">
+          <div>
+            <h4>週次</h4>
+            <div class="summary-breakdown-table">
+              <table>
+                <thead>
+                  <tr><th>週</th><th>事業者</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
+                </thead>
+                <tbody id="follower-week-body"></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h4>月次</h4>
+            <div class="summary-breakdown-table">
+              <table>
+                <thead>
+                  <tr><th>月</th><th>事業者</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
+                </thead>
+                <tbody id="follower-month-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="follower-chart" style="margin-top:14px;">
+          <div class="follower-chart-legend" id="follower-chart-legend"></div>
+          <div class="follower-chart-bars" id="follower-chart-bars"></div>
+        </div>
         <div class="summary-section-head">
           <h3 class="summary-section-title" id="summary-breakdown-title">週別・事業者別内訳</h3>
           <div class="summary-mode-tabs" aria-label="内訳表示単位">
@@ -1445,9 +1543,7 @@
           <span>職員問い合わせ</span><strong>${staffInquiries}件</strong>
           <span>合計</span><strong>${inquiries.length}件</strong>
         </div>
-        <button type="button" class="manual-badge" id="inquiry-detail-button">詳細</button>
       `;
-      $("#inquiry-detail-button").addEventListener("click", openInquiryDetail);
 
       renderPie("#impression-pie");
       renderPie("#follower-pie");
@@ -1561,7 +1657,6 @@
     function postTableHtml(posts) {
       const columns = [
         ["date", "投稿日"],
-        ["business", "事業者"],
         ["sns", "SNS"],
         ["content", "内容"],
         ["impressions", "Imp"],
@@ -1573,13 +1668,12 @@
       `).join("")}</tr></thead><tbody>
         ${posts.map(p => `<tr>
           <td>${dateLabel(p.date)}</td>
-          <td>${escapeHtml(p.business)}</td>
           <td>${escapeHtml(p.sns)}</td>
           <td>${escapeHtml(p.content)}</td>
           <td>${Number(p.impressions || 0).toLocaleString()}</td>
           <td>${escapeHtml(p.operator)}</td>
           <td>${escapeHtml(fullDateTime(p.inputAt))}</td>
-        </tr>`).join("") || `<tr><td colspan="7">データはありません。</td></tr>`}
+        </tr>`).join("") || `<tr><td colspan="6">データはありません。</td></tr>`}
       </tbody></table>`;
     }
 
@@ -1657,6 +1751,7 @@
           <td><span class="pill ${lstep.remaining <= 20 ? "danger" : "ok"}">${lstep.remaining}</span></td>
         </tr>`;
       }).join("");
+      renderFollowerSummary(selectedBusiness);
       const periodLabel = summaryBreakdownLabels()[summaryBreakdownMode];
       $("#summary-breakdown-title").textContent = `${periodLabel}・事業者別内訳`;
       $("#summary-date-head").innerHTML = `
@@ -1684,6 +1779,110 @@
       `).join("") || `<tr><td colspan="11">データはありません。</td></tr>`;
       $("#summary-total-impressions").textContent = `${allImpressions.toLocaleString()}回`;
       $("#summary-total-followers").textContent = `${allFollowers.toLocaleString()}人`;
+    }
+
+    function renderFollowerSummary(selectedBusiness) {
+      const weekRows = followerTrendRows("week", selectedBusiness).slice(-12).reverse();
+      const monthRows = followerTrendRows("month", selectedBusiness).slice(-12).reverse();
+      $("#follower-week-body").innerHTML = followerTrendTableRows(weekRows) || `<tr><td colspan="5">データはありません。</td></tr>`;
+      $("#follower-month-body").innerHTML = followerTrendTableRows(monthRows) || `<tr><td colspan="5">データはありません。</td></tr>`;
+      $("#follower-chart-legend").innerHTML = visibleFollowerBusinesses(selectedBusiness).map((business, index) =>
+        `<span><i style="background:${followerColor(index)}"></i>${escapeHtml(business)}</span>`
+      ).join("");
+      $("#follower-chart-bars").innerHTML = followerChartHtml(selectedBusiness);
+    }
+
+    function followerTrendTableRows(rows) {
+      return rows.map(row => `
+        <tr>
+          <td>${escapeHtml(row.label)}</td>
+          <td>${escapeHtml(row.business)}</td>
+          <td>${row.followers.toLocaleString()}</td>
+          <td>${followerDiffText(row.diff)}</td>
+          <td>${followerRateText(row.diff, row.previous)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function visibleFollowerBusinesses(selectedBusiness) {
+      return selectedBusiness === "合計" ? businesses : businesses.filter(business => business === selectedBusiness);
+    }
+
+    function followerTrendRows(mode, selectedBusiness = "合計") {
+      const targetBusinesses = visibleFollowerBusinesses(selectedBusiness);
+      const grouped = new Map();
+      data.followers
+        .filter(item => targetBusinesses.includes(item.business) && isThroughToday(item.date))
+        .forEach(item => {
+          const period = summaryPeriodInfo(item.date, mode);
+          const key = `${period.key}_${item.business}`;
+          const stamp = `${item.date || ""}_${item.inputAt || ""}`;
+          const current = grouped.get(key);
+          if (!current || stamp >= current.stamp) {
+            grouped.set(key, {
+              period: period.key,
+              label: period.label,
+              business: item.business,
+              followers: Number(item.followers || 0),
+              stamp
+            });
+          }
+        });
+
+      const chronological = Array.from(grouped.values()).sort((a, b) =>
+        a.business.localeCompare(b.business, "ja") || a.period.localeCompare(b.period)
+      );
+      const previousByBusiness = new Map();
+      chronological.forEach(row => {
+        const previous = previousByBusiness.get(row.business);
+        row.previous = previous?.followers || 0;
+        row.diff = previous ? row.followers - previous.followers : null;
+        previousByBusiness.set(row.business, row);
+      });
+      return chronological.sort((a, b) =>
+        a.period.localeCompare(b.period) || a.business.localeCompare(b.business, "ja")
+      );
+    }
+
+    function followerDiffText(diff) {
+      if (diff === null || diff === undefined) return "-";
+      if (diff > 0) return `+${diff.toLocaleString()}`;
+      return diff.toLocaleString();
+    }
+
+    function followerRateText(diff, previous) {
+      if (diff === null || diff === undefined || !previous) return "-";
+      const rate = (diff / previous) * 100;
+      const label = rate > 0 ? "up" : rate < 0 ? "down" : "";
+      return `${rate > 0 ? "+" : ""}${rate.toFixed(1)}%${label}`;
+    }
+
+    function followerColor(index) {
+      return ["#4285f4", "#ea4335", "#fbbc04", "#34a853", "#8e44ad", "#00acc1"][index % 6];
+    }
+
+    function followerChartHtml(selectedBusiness) {
+      const rows = followerTrendRows("month", selectedBusiness);
+      const periods = Array.from(new Map(rows.map(row => [row.period, row.label])).entries()).slice(-6);
+      const targetBusinesses = visibleFollowerBusinesses(selectedBusiness);
+      const byPeriodBusiness = new Map(rows.map(row => [`${row.period}_${row.business}`, row.followers]));
+      const totals = periods.map(([period]) => targetBusinesses.reduce((sum, business) => sum + Number(byPeriodBusiness.get(`${period}_${business}`) || 0), 0));
+      const max = Math.max(...totals, 1);
+      return periods.map(([period, label], periodIndex) => {
+        const total = totals[periodIndex] || 0;
+        const height = Math.max(8, Math.round((total / max) * 200));
+        const segments = targetBusinesses.map((business, index) => {
+          const value = Number(byPeriodBusiness.get(`${period}_${business}`) || 0);
+          const percent = total ? Math.max(4, (value / total) * 100) : 0;
+          return `<span title="${escapeHtml(business)} ${value.toLocaleString()}" style="height:${percent}%; background:${followerColor(index)}"></span>`;
+        }).join("");
+        return `
+          <div class="follower-chart-col">
+            <div class="follower-bar" style="height:${height}px">${segments}</div>
+            <div class="follower-chart-label">${escapeHtml(label)}</div>
+          </div>
+        `;
+      }).join("") || `<div class="empty-state">グラフに表示するデータがありません。</div>`;
     }
 
     function summaryBreakdownLabels() {
@@ -1839,13 +2038,30 @@
       return Object.fromEntries(new FormData(form).entries());
     }
 
+    function defaultPostBusiness() {
+      const selected = $("#report-business")?.value || "";
+      return selected && selected !== "合計" ? selected : businesses[0];
+    }
+
+    function defaultPostAccount(business, sns) {
+      return data.accounts.find(account => account.business === business && account.sns === sns)?.name || `${business}_${sns || "SNS"}`;
+    }
+
     $("#post-form").addEventListener("submit", event => {
       event.preventDefault();
       const value = formObject(event.currentTarget);
       const { start, end } = formWeekDefaults(event.currentTarget);
+      const business = defaultPostBusiness();
       value.weekStart = start;
       value.weekEnd = end;
-      data.posts.push({ id: uid(), ...value, impressions: Number(value.impressions || 0), inputAt: new Date().toISOString() });
+      data.posts.push({
+        id: uid(),
+        ...value,
+        business,
+        account: defaultPostAccount(business, value.sns),
+        impressions: Number(value.impressions || 0),
+        inputAt: new Date().toISOString()
+      });
       saveData(data);
       event.currentTarget.reset();
       setupForms();
@@ -2022,8 +2238,8 @@
       return {
         name: "投稿入力",
         rows: [
-          ["週開始日", "週終了日", "投稿日", "事業者", "アカウント名", "SNS種別", "投稿内容", "インプレッション/再生数", "入力者", "入力時間"],
-          ...sortedPostRows().map(p => [p.weekStart, p.weekEnd, p.date, p.business, p.account, p.sns, p.content, p.impressions, p.operator, fullDateTime(p.inputAt)])
+          ["週開始日", "週終了日", "投稿日", "SNS種別", "投稿内容", "インプレッション/再生数", "入力者", "入力時間"],
+          ...sortedPostRows().map(p => [p.weekStart, p.weekEnd, p.date, p.sns, p.content, p.impressions, p.operator, fullDateTime(p.inputAt)])
         ]
       };
     }
