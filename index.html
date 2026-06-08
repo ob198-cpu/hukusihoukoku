@@ -1353,7 +1353,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "sns_operation_report_single_site_v2";
+    const STORAGE_KEY = "sns_operation_report_single_site_v3";
     const businesses = ["自事業所"];
     const snsTypes = ["X", "Instagram", "TikTok", "Threads", "YouTube"];
     const inquiryTypes = ["利用者問い合わせ", "職員問い合わせ", "その他"];
@@ -1439,6 +1439,8 @@
     function sampleData() {
       const weekStart = "2026-05-25";
       const weekEnd = "2026-05-31";
+      const testWeekStart = "2026-06-08";
+      const testWeekEnd = "2026-06-14";
       const posts = [];
       businesses.forEach((business, bIndex) => {
         const businessFollowers = 3320 + bIndex * 110;
@@ -1461,6 +1463,27 @@
             account: `${business}_${sns}`, sns, content, impressions: impressions + bIndex * 35,
             followers: businessFollowers, operator: "入力者サンプル",
             inputAt: new Date(2026, 4, 31, 10, 40 + i).toISOString(), note: "週1投稿想定"
+          });
+        });
+        ["6月キャンペーン告知", "利用者インタビュー", "支援内容まとめ", "よくある相談", "週次活動レポート"].forEach((content, i) => {
+          posts.push({
+            id: uid(), weekStart: testWeekStart, weekEnd: testWeekEnd, date: iso(new Date(2026, 5, 8 + i)), business,
+            account: `${business}_X`, sns: "X", content, impressions: 1120 + i * 80,
+            followers: 3440, operator: "入力者サンプル",
+            inputAt: new Date(2026, 5, 14, 10, 10 + i).toISOString(), note: "テスト用X投稿"
+          });
+        });
+        [
+          ["Instagram", "6月の活動写真", 540],
+          ["TikTok", "短尺動画テスト", 760],
+          ["Threads", "今日の支援メモ", 310],
+          ["YouTube", "見学案内動画", 420]
+        ].forEach(([sns, content, impressions], i) => {
+          posts.push({
+            id: uid(), weekStart: testWeekStart, weekEnd: testWeekEnd, date: iso(new Date(2026, 5, 9 + i)), business,
+            account: `${business}_${sns}`, sns, content, impressions,
+            followers: 3440, operator: "入力者サンプル",
+            inputAt: new Date(2026, 5, 14, 10, 30 + i).toISOString(), note: "テスト用SNS投稿"
           });
         });
       });
@@ -1486,13 +1509,23 @@
         inquiries: [
           { id: uid(), weekStart, weekEnd, date: "2026-05-26", business: businesses[0], sns: "Instagram", type: "利用者問い合わせ", content: "見学希望のDM", status: "対応中", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 0).toISOString() },
           { id: uid(), weekStart, weekEnd, date: "2026-05-27", business: businesses[0], sns: "X", type: "職員問い合わせ", content: "投稿内容の確認依頼", status: "対応済", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 5).toISOString() },
-          { id: uid(), weekStart, weekEnd, date: "2026-05-28", business: businesses[0], sns: "TikTok", type: "利用者問い合わせ", content: "サービス内容について質問", status: "未対応", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 10).toISOString() }
+          { id: uid(), weekStart, weekEnd, date: "2026-05-28", business: businesses[0], sns: "TikTok", type: "利用者問い合わせ", content: "サービス内容について質問", status: "未対応", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 10).toISOString() },
+          { id: uid(), weekStart: testWeekStart, weekEnd: testWeekEnd, date: "2026-06-08", business: businesses[0], sns: "Instagram", type: "利用者問い合わせ", content: "見学予約についてDM", status: "対応中", operator: "入力者サンプル", inputAt: new Date(2026, 5, 8, 11, 0).toISOString() },
+          { id: uid(), weekStart: testWeekStart, weekEnd: testWeekEnd, date: "2026-06-10", business: businesses[0], sns: "X", type: "職員問い合わせ", content: "投稿文の確認依頼", status: "対応済", operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 11, 5).toISOString() },
+          { id: uid(), weekStart: testWeekStart, weekEnd: testWeekEnd, date: "2026-06-12", business: businesses[0], sns: "TikTok", type: "利用者問い合わせ", content: "サービス利用条件の質問", status: "未対応", operator: "入力者サンプル", inputAt: new Date(2026, 5, 12, 11, 10).toISOString() }
         ],
-        lsteps: businesses.map((business, index) => ({
-          id: uid(), weekStart, weekEnd, checkDate: "2026-05-31", business,
-          previous: 22 + index, current: 20 + index, limit: 200,
-          operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 30).toISOString()
-        }))
+        lsteps: [
+          ...businesses.map((business, index) => ({
+            id: uid(), weekStart, weekEnd, checkDate: "2026-05-31", business,
+            previous: 22 + index, current: 20 + index, limit: 200,
+            operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 30).toISOString()
+          })),
+          ...businesses.map((business, index) => ({
+            id: uid(), weekStart: testWeekStart, weekEnd: testWeekEnd, checkDate: "2026-06-14", business,
+            previous: 20 + index, current: 31 + index, limit: 200,
+            operator: "入力者サンプル", inputAt: new Date(2026, 5, 14, 11, 30).toISOString()
+          }))
+        ]
       };
     }
 
