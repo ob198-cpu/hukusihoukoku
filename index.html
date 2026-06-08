@@ -596,6 +596,14 @@
       margin: 0 0 10px;
     }
 
+    .summary-range-controls {
+      display: grid;
+      grid-template-columns: minmax(150px, 1fr) minmax(150px, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+      margin: 0 0 14px;
+    }
+
     .input-tab {
       flex: 1;
       border: 1px solid var(--line);
@@ -1248,6 +1256,11 @@
           <button class="summary-tab" type="button" data-summary-tab="works">作品別推移</button>
           <button class="summary-tab" type="button" data-summary-tab="breakdown">投稿・問い合わせ内訳</button>
         </div>
+        <div class="summary-range-controls">
+          <label>表示開始日<input type="date" id="summary-start"></label>
+          <label>表示終了日<input type="date" id="summary-end"></label>
+          <button class="btn" type="button" id="summary-all-period">全期間</button>
+        </div>
 
         <div class="summary-panel active" data-summary-panel="overview">
           <div class="kpi-grid">
@@ -1622,6 +1635,39 @@
         ...data.lsteps.map(item => item.checkDate)
       ].filter(Boolean).sort();
       return dates.at(-1) || todayIso();
+    }
+
+    function summaryDateBounds() {
+      const dates = [
+        ...data.posts.map(item => item.date),
+        ...data.followers.map(item => item.date),
+        ...data.workMetrics.map(item => item.date),
+        ...data.inquiries.map(item => item.date),
+        ...data.lsteps.map(item => item.checkDate)
+      ].filter(Boolean).sort();
+      return {
+        start: dates[0] || todayIso(),
+        end: dates.at(-1) || todayIso()
+      };
+    }
+
+    function summaryRange() {
+      const bounds = summaryDateBounds();
+      let start = $("#summary-start")?.value || bounds.start;
+      let end = $("#summary-end")?.value || bounds.end;
+      if (start && end && start > end) {
+        [start, end] = [end, start];
+      }
+      return {
+        start,
+        end
+      };
+    }
+
+    function isInSummaryRange(value) {
+      if (!value) return false;
+      const { start, end } = summaryRange();
+      return (!start || value >= start) && (!end || value <= end);
     }
 
     function totalImpressionsThroughToday(posts) {
@@ -2050,7 +2096,8 @@
       $$("[data-work-mode]").forEach(button => {
         button.classList.toggle("active", button.dataset.workMode === workBreakdownMode);
       });
-      $("#summary-work-metrics").innerHTML = workMetricTableHtml(data.workMetrics, workBreakdownMode);
+      const rows = data.workMetrics.filter(item => isInSummaryRange(item.date));
+      $("#summary-work-metrics").innerHTML = workMetricTableHtml(rows, workBreakdownMode);
     }
 
     function renderFollowerSummary(selectedBusiness) {
@@ -2081,7 +2128,7 @@
       const targetBusinesses = visibleFollowerBusinesses(selectedBusiness);
       const grouped = new Map();
       data.followers
-        .filter(item => targetBusinesses.includes(item.business) && isThroughToday(item.date))
+        .filter(item => targetBusinesses.includes(item.business) && isThroughToday(item.date) && isInSummaryRange(item.date))
         .forEach(item => {
           const period = summaryPeriodInfo(item.date, mode);
           const key = `${period.key}_${item.business}`;
@@ -2194,7 +2241,7 @@
         return rows.get(key);
       };
 
-      data.posts.filter(post => (selectedBusiness === "合計" || post.business === selectedBusiness) && isThroughToday(post.date)).forEach(post => {
+      data.posts.filter(post => (selectedBusiness === "合計" || post.business === selectedBusiness) && isThroughToday(post.date) && isInSummaryRange(post.date)).forEach(post => {
         const row = ensure(post.date, post.business);
         const value = Number(post.impressions || 0);
         row.posts += 1;
@@ -2206,11 +2253,11 @@
         if (post.sns === "YouTube") row.youtube += value;
       });
 
-      data.inquiries.filter(item => (selectedBusiness === "合計" || item.business === selectedBusiness) && isThroughToday(item.date)).forEach(item => {
+      data.inquiries.filter(item => (selectedBusiness === "合計" || item.business === selectedBusiness) && isThroughToday(item.date) && isInSummaryRange(item.date)).forEach(item => {
         ensure(item.date, item.business).inquiries += 1;
       });
 
-      data.lsteps.filter(item => (selectedBusiness === "合計" || item.business === selectedBusiness) && isThroughToday(item.checkDate)).forEach(item => {
+      data.lsteps.filter(item => (selectedBusiness === "合計" || item.business === selectedBusiness) && isThroughToday(item.checkDate) && isInSummaryRange(item.checkDate)).forEach(item => {
         ensure(item.checkDate, item.business).lstep += Number(item.current || 0);
       });
 
@@ -2232,6 +2279,9 @@
       if (!$("#week-end").value) $("#week-end").value = currentWeek.end;
       if (!$("#record-week-start").value) $("#record-week-start").value = $("#week-start").value;
       if (!$("#record-week-end").value) $("#record-week-end").value = $("#week-end").value;
+      const summaryBounds = summaryDateBounds();
+      if (!$("#summary-start").value) $("#summary-start").value = summaryBounds.start;
+      if (!$("#summary-end").value) $("#summary-end").value = summaryBounds.end;
 
       $$("select[name='business']").forEach(select => setOptions(select, businesses));
       $$("select[name='sns']").forEach(select => setOptions(select, ["X", "Instagram", "TikTok", "Threads", "YouTube", "その他"]));
@@ -2436,6 +2486,15 @@
         summaryBreakdownMode = button.dataset.summaryMode;
         renderSummary();
       });
+    });
+    ["summary-start", "summary-end"].forEach(id => {
+      $(`#${id}`).addEventListener("change", renderSummary);
+    });
+    $("#summary-all-period").addEventListener("click", () => {
+      const bounds = summaryDateBounds();
+      $("#summary-start").value = bounds.start;
+      $("#summary-end").value = bounds.end;
+      renderSummary();
     });
     $$("[data-work-mode]").forEach(button => {
       button.addEventListener("click", () => {
