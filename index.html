@@ -772,25 +772,28 @@
 
     .follower-chart-bars {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 96px));
+      justify-content: start;
+      gap: 28px;
       align-items: end;
-      min-height: 230px;
+      min-height: 190px;
       padding: 10px 0 0;
       border-bottom: 2px solid #8fa5bb;
     }
 
     .follower-chart-col {
       display: grid;
+      justify-items: center;
       align-items: end;
       gap: 6px;
-      min-height: 210px;
+      min-height: 176px;
     }
 
     .follower-bar {
       display: grid;
       align-content: start;
       justify-content: center;
+      width: 48px;
       min-height: 12px;
       border-radius: 5px 5px 0 0;
       overflow: hidden;
@@ -842,8 +845,9 @@
 
     .work-chart-bars {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(92px, 110px));
+      justify-content: start;
+      gap: 30px;
       align-items: end;
       min-height: 180px;
       padding-top: 10px;
@@ -852,6 +856,7 @@
 
     .work-chart-col {
       display: grid;
+      justify-items: center;
       align-items: end;
       gap: 6px;
       min-height: 168px;
@@ -861,6 +866,7 @@
       display: flex;
       flex-direction: column-reverse;
       justify-content: flex-start;
+      width: 62px;
       min-height: 12px;
       border-radius: 5px 5px 0 0;
       color: #fff;
@@ -2016,15 +2022,13 @@
       const targetBusinesses = visibleFollowerBusinesses(selectedBusiness);
       const byPeriodBusiness = new Map(rows.map(row => [`${row.period}_${row.business}`, row.followers]));
       const totals = periods.map(([period]) => targetBusinesses.reduce((sum, business) => sum + Number(byPeriodBusiness.get(`${period}_${business}`) || 0), 0));
-      const max = Math.max(...totals, 1);
+      const validTotals = totals.filter(total => total > 0);
+      const max = Math.max(...validTotals, 1);
+      const min = Math.min(...validTotals, max);
+      const range = Math.max(max - min, 1);
       return periods.map(([period, label], periodIndex) => {
         const total = totals[periodIndex] || 0;
-        const height = Math.max(8, Math.round((total / max) * 200));
-        const segments = targetBusinesses.map((business, index) => {
-          const value = Number(byPeriodBusiness.get(`${period}_${business}`) || 0);
-          const percent = total ? Math.max(4, (value / total) * 100) : 0;
-          return `<span title="${escapeHtml(business)} ${value.toLocaleString()}" style="height:${percent}%; background:${followerColor(index)}"></span>`;
-        }).join("");
+        const height = total ? Math.max(36, Math.round(42 + ((total - min) / range) * 105)) : 12;
         return `
           <div class="follower-chart-col">
             <div class="follower-bar" style="height:${height}px">${total.toLocaleString()}</div>
