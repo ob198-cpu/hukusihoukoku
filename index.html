@@ -937,7 +937,7 @@
             <div class="grid-3">
               <label>週開始日<input type="date" id="week-start"></label>
               <label>週終了日<input type="date" id="week-end"></label>
-              <label>対象事業者<select id="report-business"></select></label>
+              <select id="report-business" hidden></select>
             </div>
           </div>
 
@@ -1039,7 +1039,7 @@
               <label>入力者<input type="text" name="operator" required></label>
             </div>
             <fieldset class="field-group">
-              <legend>事業者別フォロワー数</legend>
+              <legend>フォロワー数</legend>
               <div class="follower-bulk-grid" id="follower-bulk-body"></div>
             </fieldset>
             <button class="btn primary" type="submit">フォロワー数を一括送信</button>
@@ -1051,7 +1051,6 @@
               <label>週開始日<input type="date" name="weekStart" required></label>
               <label>週終了日<input type="date" name="weekEnd" required></label>
               <label>投稿日<input type="date" name="date" required></label>
-              <label>事業者<select name="business" required></select></label>
               <label>SNS種別<select name="sns" required></select></label>
               <label>区分<select name="type" required></select></label>
               <label>対応状況<select name="status" required></select></label>
@@ -1067,7 +1066,6 @@
               <label>週開始日<input type="date" name="weekStart" required></label>
               <label>週終了日<input type="date" name="weekEnd" required></label>
               <label>投稿日<input type="date" name="checkDate" required></label>
-              <label>事業者<select name="business" required></select></label>
               <label>無料枠<input type="number" name="limit" min="0" value="200"></label>
               <label>入力者<input type="text" name="operator" required></label>
             </div>
@@ -1128,7 +1126,7 @@
         <table>
           <thead>
             <tr>
-              <th>事業者</th><th>創業から今日まで 総インプレッション/再生数</th><th>今日時点 総フォロワー数</th><th>問い合わせ</th><th>利用者問い合わせ</th><th>職員問い合わせ</th><th>L前週送信数</th><th>L今週送信数</th><th>L残通数</th>
+              <th>創業から今日まで 総インプレッション/再生数</th><th>今日時点 総フォロワー数</th><th>問い合わせ</th><th>利用者問い合わせ</th><th>職員問い合わせ</th><th>L前週送信数</th><th>L今週送信数</th><th>L残通数</th>
             </tr>
           </thead>
           <tbody id="summary-body"></tbody>
@@ -1140,7 +1138,7 @@
             <div class="summary-breakdown-table">
               <table>
                 <thead>
-                  <tr><th>週</th><th>事業者</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
+                  <tr><th>週</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
                 </thead>
                 <tbody id="follower-week-body"></tbody>
               </table>
@@ -1151,7 +1149,7 @@
             <div class="summary-breakdown-table">
               <table>
                 <thead>
-                  <tr><th>月</th><th>事業者</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
+                  <tr><th>月</th><th>フォロワー数</th><th>前回比</th><th>増加率</th></tr>
                 </thead>
                 <tbody id="follower-month-body"></tbody>
               </table>
@@ -1163,7 +1161,7 @@
           <div class="follower-chart-bars" id="follower-chart-bars"></div>
         </div>
         <div class="summary-section-head">
-          <h3 class="summary-section-title" id="summary-breakdown-title">週別・事業者別内訳</h3>
+          <h3 class="summary-section-title" id="summary-breakdown-title">週別内訳</h3>
           <div class="summary-mode-tabs" aria-label="内訳表示単位">
             <button class="summary-mode-btn" type="button" data-summary-mode="day">日別</button>
             <button class="summary-mode-btn active" type="button" data-summary-mode="week">週別</button>
@@ -1174,7 +1172,7 @@
           <table>
             <thead id="summary-date-head">
             <tr>
-              <th>週</th><th>事業者</th><th>投稿数</th><th>X</th><th>Instagram</th><th>TikTok</th><th>Threads</th><th>YouTube</th><th>合計Imp/再生</th><th>問い合わせ</th><th>L送信数</th>
+              <th>週</th><th>投稿数</th><th>X</th><th>Instagram</th><th>TikTok</th><th>Threads</th><th>YouTube</th><th>合計Imp/再生</th><th>問い合わせ</th><th>L送信数</th>
             </tr>
             </thead>
             <tbody id="summary-date-body"></tbody>
@@ -1204,8 +1202,8 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "sns_operation_report_v1";
-    const businesses = ["事業者A", "事業者B", "事業者C", "事業者D", "事業者E", "事業者F"];
+    const STORAGE_KEY = "sns_operation_report_single_site_v1";
+    const businesses = ["自事業所"];
     const snsTypes = ["X", "Instagram", "TikTok", "Threads", "YouTube"];
     const inquiryTypes = ["利用者問い合わせ", "職員問い合わせ", "その他"];
     const inquiryStatuses = ["未対応", "対応中", "対応済", "保留"];
@@ -1326,9 +1324,9 @@
           inputAt: new Date(2026, 4, 31, 10, 55 + bIndex).toISOString()
         })),
         inquiries: [
-          { id: uid(), weekStart, weekEnd, date: "2026-05-26", business: "事業者A", sns: "Instagram", type: "利用者問い合わせ", content: "見学希望のDM", status: "対応中", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 0).toISOString() },
-          { id: uid(), weekStart, weekEnd, date: "2026-05-27", business: "事業者A", sns: "X", type: "職員問い合わせ", content: "投稿内容の確認依頼", status: "対応済", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 5).toISOString() },
-          { id: uid(), weekStart, weekEnd, date: "2026-05-28", business: "事業者B", sns: "TikTok", type: "利用者問い合わせ", content: "サービス内容について質問", status: "未対応", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 10).toISOString() }
+          { id: uid(), weekStart, weekEnd, date: "2026-05-26", business: businesses[0], sns: "Instagram", type: "利用者問い合わせ", content: "見学希望のDM", status: "対応中", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 0).toISOString() },
+          { id: uid(), weekStart, weekEnd, date: "2026-05-27", business: businesses[0], sns: "X", type: "職員問い合わせ", content: "投稿内容の確認依頼", status: "対応済", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 5).toISOString() },
+          { id: uid(), weekStart, weekEnd, date: "2026-05-28", business: businesses[0], sns: "TikTok", type: "利用者問い合わせ", content: "サービス内容について質問", status: "未対応", operator: "入力者サンプル", inputAt: new Date(2026, 4, 31, 11, 10).toISOString() }
         ],
         lsteps: businesses.map((business, index) => ({
           id: uid(), weekStart, weekEnd, checkDate: "2026-05-31", business,
@@ -1473,7 +1471,7 @@
     }
 
     function filteredPosts() {
-      const business = $("#report-business").value;
+      const business = businesses[0];
       const { start, end } = currentWeekDefaults();
       return data.posts.filter(post => (business === "合計" || post.business === business) && post.weekStart === start && post.weekEnd === end);
     }
@@ -1533,7 +1531,7 @@
       const staffInquiries = inquiries.filter(item => item.type === "職員問い合わせ").length;
       const start = $("#week-start").value;
       const end = $("#week-end").value;
-      $("#period-label").textContent = `${dateLabel(start)}～${dateLabel(end)}　投稿（${escapeHtml(business)}）`;
+      $("#period-label").textContent = `${dateLabel(start)}～${dateLabel(end)}　投稿`;
       $("#total-impressions").textContent = `${totalImpressions.toLocaleString()}回`;
       $("#total-followers").textContent = `${latestFollowers.toLocaleString()}人`;
       $("#report-kpis").innerHTML = `
@@ -1616,11 +1614,11 @@
       const weeklyLsteps = data.lsteps.filter(item => isRecordAllMode() || (item.weekStart === start && item.weekEnd === end));
       const tables = {
         post: `<h3>投稿 ${recordCountLabel(sortedPosts.length)}</h3>${postTableHtml(sortedPosts.slice(0, 30))}`,
-        follower: `<h3>フォロワー ${recordCountLabel(followerRows.length)}</h3>${tableHtml(["投稿日", "事業者", "フォロワー数", "入力者", "入力時間"], followerRows.slice().reverse().slice(0, 30).map(item => [dateLabel(item.date), item.business, Number(item.followers || 0).toLocaleString(), item.operator, fullDateTime(item.inputAt)]))}`,
-        inquiry: `<h3>問い合わせ ${recordCountLabel(weeklyInquiries.length)}</h3>${tableHtml(["投稿日", "事業者", "SNS", "区分", "内容", "対応", "入力者", "入力時間"], weeklyInquiries.slice().reverse().slice(0, 20).map(i => [dateLabel(i.date), i.business, i.sns, i.type, i.content, i.status, i.operator, fullDateTime(i.inputAt)]))}`,
-        lstep: `<h3>Lステップ ${recordCountLabel(weeklyLsteps.length)}</h3>${tableHtml(["週", "事業者", "前週送信数", "今週送信数", "残通数", "入力者", "入力時間"], weeklyLsteps.slice().reverse().slice(0, 20).map(l => {
+        follower: `<h3>フォロワー ${recordCountLabel(followerRows.length)}</h3>${tableHtml(["投稿日", "フォロワー数", "入力者", "入力時間"], followerRows.slice().reverse().slice(0, 30).map(item => [dateLabel(item.date), Number(item.followers || 0).toLocaleString(), item.operator, fullDateTime(item.inputAt)]))}`,
+        inquiry: `<h3>問い合わせ ${recordCountLabel(weeklyInquiries.length)}</h3>${tableHtml(["投稿日", "SNS", "区分", "内容", "対応", "入力者", "入力時間"], weeklyInquiries.slice().reverse().slice(0, 20).map(i => [dateLabel(i.date), i.sns, i.type, i.content, i.status, i.operator, fullDateTime(i.inputAt)]))}`,
+        lstep: `<h3>Lステップ ${recordCountLabel(weeklyLsteps.length)}</h3>${tableHtml(["週", "前週送信数", "今週送信数", "残通数", "入力者", "入力時間"], weeklyLsteps.slice().reverse().slice(0, 20).map(l => {
           const info = lstepInfo(l);
-          return [`${dateLabel(l.weekStart)}-${dateLabel(l.weekEnd)}`, l.business, l.previous, l.current, info.remaining, l.operator, fullDateTime(l.inputAt)];
+          return [`${dateLabel(l.weekStart)}-${dateLabel(l.weekEnd)}`, l.previous, l.current, info.remaining, l.operator, fullDateTime(l.inputAt)];
         }))}`
       };
       $("#record-tables").innerHTML = tables[active] || tables.post;
@@ -1708,11 +1706,11 @@
       const start = $("#modal-week-start").value || $("#week-start").value;
       const end = addDays(start, 6);
       const inquiries = data.inquiries.filter(item =>
-        (business === "合計" || item.business === business) &&
+        item.business === business &&
         item.weekStart === start &&
         item.weekEnd === end
       );
-      $("#inquiry-modal-subtitle").textContent = `${business} / ${dateLabel(start)}〜${dateLabel(end)}`;
+      $("#inquiry-modal-subtitle").textContent = `${dateLabel(start)}〜${dateLabel(end)}`;
       $("#inquiry-modal-body").innerHTML = tableHtml(
         ["投稿日", "SNS種別", "区分", "問い合わせ内容", "対応状況", "入力者", "入力時間"],
         inquiries.map(item => [dateLabel(item.date), item.sns, item.type, item.content, item.status, item.operator, fullDateTime(item.inputAt)])
@@ -1731,8 +1729,8 @@
     }
 
     function renderSummary() {
-      const selectedBusiness = $("#report-business")?.value || "合計";
-      const visibleBusinesses = selectedBusiness === "合計" ? businesses : businesses.filter(business => business === selectedBusiness);
+      const selectedBusiness = businesses[0];
+      const visibleBusinesses = businesses;
       const summaryPosts = data.posts.filter(post => selectedBusiness === "合計" || post.business === selectedBusiness);
       const allImpressions = totalImpressionsThroughToday(summaryPosts);
       const allFollowers = latestFollowerTotal(summaryPosts);
@@ -1741,7 +1739,6 @@
         const inquiries = data.inquiries.filter(i => i.business === business);
         const lstep = lstepInfo(latestLstep(business));
         return `<tr>
-          <td>${business}</td>
           <td>${totalImpressionsThroughToday(posts).toLocaleString()}</td>
           <td>${latestFollowerTotal(posts).toLocaleString()}</td>
           <td>${inquiries.length}</td>
@@ -1753,10 +1750,10 @@
       }).join("");
       renderFollowerSummary(selectedBusiness);
       const periodLabel = summaryBreakdownLabels()[summaryBreakdownMode];
-      $("#summary-breakdown-title").textContent = `${periodLabel}・事業者別内訳`;
+      $("#summary-breakdown-title").textContent = `${periodLabel}内訳`;
       $("#summary-date-head").innerHTML = `
         <tr>
-          <th>${periodLabel}</th><th>事業者</th><th>投稿数</th><th>X</th><th>Instagram</th><th>TikTok</th><th>Threads</th><th>YouTube</th><th>合計Imp/再生</th><th>問い合わせ</th><th>L送信数</th>
+          <th>${periodLabel}</th><th>投稿数</th><th>X</th><th>Instagram</th><th>TikTok</th><th>Threads</th><th>YouTube</th><th>合計Imp/再生</th><th>問い合わせ</th><th>L送信数</th>
         </tr>
       `;
       $$("[data-summary-mode]").forEach(button => {
@@ -1765,7 +1762,6 @@
       $("#summary-date-body").innerHTML = summaryDateRows(selectedBusiness, summaryBreakdownMode).map(row => `
         <tr>
           <td>${escapeHtml(row.label)}</td>
-          <td>${escapeHtml(row.business)}</td>
           <td>${row.posts}</td>
           <td>${row.x.toLocaleString()}</td>
           <td>${row.instagram.toLocaleString()}</td>
@@ -1776,7 +1772,7 @@
           <td>${row.inquiries}</td>
           <td>${row.lstep.toLocaleString()}</td>
         </tr>
-      `).join("") || `<tr><td colspan="11">データはありません。</td></tr>`;
+      `).join("") || `<tr><td colspan="10">データはありません。</td></tr>`;
       $("#summary-total-impressions").textContent = `${allImpressions.toLocaleString()}回`;
       $("#summary-total-followers").textContent = `${allFollowers.toLocaleString()}人`;
     }
@@ -1784,11 +1780,9 @@
     function renderFollowerSummary(selectedBusiness) {
       const weekRows = followerTrendRows("week", selectedBusiness).slice(-12).reverse();
       const monthRows = followerTrendRows("month", selectedBusiness).slice(-12).reverse();
-      $("#follower-week-body").innerHTML = followerTrendTableRows(weekRows) || `<tr><td colspan="5">データはありません。</td></tr>`;
-      $("#follower-month-body").innerHTML = followerTrendTableRows(monthRows) || `<tr><td colspan="5">データはありません。</td></tr>`;
-      $("#follower-chart-legend").innerHTML = visibleFollowerBusinesses(selectedBusiness).map((business, index) =>
-        `<span><i style="background:${followerColor(index)}"></i>${escapeHtml(business)}</span>`
-      ).join("");
+      $("#follower-week-body").innerHTML = followerTrendTableRows(weekRows) || `<tr><td colspan="4">データはありません。</td></tr>`;
+      $("#follower-month-body").innerHTML = followerTrendTableRows(monthRows) || `<tr><td colspan="4">データはありません。</td></tr>`;
+      $("#follower-chart-legend").innerHTML = `<span><i style="background:${followerColor(0)}"></i>フォロワー数</span>`;
       $("#follower-chart-bars").innerHTML = followerChartHtml(selectedBusiness);
     }
 
@@ -1796,7 +1790,6 @@
       return rows.map(row => `
         <tr>
           <td>${escapeHtml(row.label)}</td>
-          <td>${escapeHtml(row.business)}</td>
           <td>${row.followers.toLocaleString()}</td>
           <td>${followerDiffText(row.diff)}</td>
           <td>${followerRateText(row.diff, row.previous)}</td>
@@ -1959,7 +1952,7 @@
     }
 
     function setupForms() {
-      setOptions($("#report-business"), ["合計", ...businesses], $("#report-business").value || "合計");
+      setOptions($("#report-business"), businesses, businesses[0]);
       const currentWeek = thisWeekRange();
       if (!$("#week-start").value) $("#week-start").value = currentWeek.start;
       if (!$("#week-end").value) $("#week-end").value = currentWeek.end;
@@ -1978,12 +1971,13 @@
 
     function renderFollowerBulkInputs() {
       const latest = new Map(latestFollowerRows().map(item => [item.business, item.followers]));
-      $("#follower-bulk-body").innerHTML = businesses.map(business => `
+      const business = businesses[0];
+      $("#follower-bulk-body").innerHTML = `
         <div class="follower-bulk-row">
-          <strong>${escapeHtml(business)}</strong>
+          <strong>フォロワー数</strong>
           <input type="number" min="0" name="followers_${escapeHtml(business)}" value="${Number(latest.get(business) || 0)}">
         </div>
-      `).join("");
+      `;
     }
 
     function syncInputWeeks() {
@@ -2095,7 +2089,7 @@
       const { start, end } = formWeekDefaults(event.currentTarget);
       value.weekStart = start;
       value.weekEnd = end;
-      data.inquiries.push({ id: uid(), ...value, inputAt: new Date().toISOString() });
+      data.inquiries.push({ id: uid(), ...value, business: businesses[0], inputAt: new Date().toISOString() });
       saveData(data);
       event.currentTarget.reset();
       setupForms();
@@ -2108,7 +2102,7 @@
       const { start, end } = formWeekDefaults(event.currentTarget);
       value.weekStart = start;
       value.weekEnd = end;
-      data.lsteps.push({ id: uid(), ...value, previous: Number(value.previous || 0), current: Number(value.current || 0), limit: Number(value.limit || 200), inputAt: new Date().toISOString() });
+      data.lsteps.push({ id: uid(), ...value, business: businesses[0], previous: Number(value.previous || 0), current: Number(value.current || 0), limit: Number(value.limit || 200), inputAt: new Date().toISOString() });
       saveData(data);
       event.currentTarget.reset();
       setupForms();
@@ -2207,8 +2201,8 @@
         return {
           name: "問い合わせ入力",
           rows: [
-            ["週開始日", "週終了日", "投稿日", "事業者", "SNS種別", "区分", "問い合わせ内容", "対応状況", "入力者", "入力時間"],
-            ...rows.map(i => [i.weekStart, i.weekEnd, i.date, i.business, i.sns, i.type, i.content, i.status, i.operator, fullDateTime(i.inputAt)])
+            ["週開始日", "週終了日", "投稿日", "SNS種別", "区分", "問い合わせ内容", "対応状況", "入力者", "入力時間"],
+            ...rows.map(i => [i.weekStart, i.weekEnd, i.date, i.sns, i.type, i.content, i.status, i.operator, fullDateTime(i.inputAt)])
           ]
         };
       }
@@ -2217,8 +2211,8 @@
         return {
           name: "フォロワー管理",
           rows: [
-            ["投稿日", "事業者", "フォロワー数", "入力者", "入力時間"],
-            ...rows.map(item => [item.date, item.business, item.followers, item.operator, fullDateTime(item.inputAt)])
+            ["投稿日", "フォロワー数", "入力者", "入力時間"],
+            ...rows.map(item => [item.date, item.followers, item.operator, fullDateTime(item.inputAt)])
           ]
         };
       }
@@ -2227,10 +2221,10 @@
         return {
           name: "Lステップ管理",
           rows: [
-            ["週開始日", "週終了日", "投稿日", "事業者", "前週送信数", "今週送信数", "無料枠", "前週+今週", "残り通数", "注意", "入力者", "入力時間"],
+            ["週開始日", "週終了日", "投稿日", "前週送信数", "今週送信数", "無料枠", "前週+今週", "残り通数", "注意", "入力者", "入力時間"],
             ...rows.map(l => {
               const info = lstepInfo(l);
-              return [l.weekStart, l.weekEnd, l.checkDate, l.business, l.previous, l.current, l.limit, info.used, info.remaining, info.note, l.operator, fullDateTime(l.inputAt)];
+              return [l.weekStart, l.weekEnd, l.checkDate, l.previous, l.current, l.limit, info.used, info.remaining, info.note, l.operator, fullDateTime(l.inputAt)];
             })
           ]
         };
