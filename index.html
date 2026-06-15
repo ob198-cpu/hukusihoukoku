@@ -1047,126 +1047,6 @@ tbody tr:nth-child(even) td {
   display: block;
 }
 
-.monitoring-toolbar {
-  display: grid;
-  grid-template-columns: auto auto minmax(180px, 260px);
-  gap: 12px;
-  align-items: end;
-  margin: 0 0 16px;
-}
-
-.monitoring-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 16px;
-}
-
-.monitoring-tab {
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 10px 18px;
-  color: var(--text-muted);
-  background: var(--card-bg);
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 13px;
-  box-shadow: var(--shadow-sm);
-}
-
-.monitoring-tab.active {
-  color: #fff;
-  border-color: transparent;
-  background: var(--primary);
-}
-
-.monitoring-panel {
-  display: none;
-}
-
-.monitoring-panel.active {
-  display: block;
-}
-
-.monitoring-kpis {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.monitoring-kpi {
-  border: 1px solid var(--border-color);
-  border-left: 4px solid var(--primary);
-  border-radius: 8px;
-  padding: 14px;
-  background: #fafafa;
-}
-
-.monitoring-kpi span {
-  display: block;
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.monitoring-kpi strong {
-  display: block;
-  margin-top: 4px;
-  color: var(--text-main);
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.monitoring-table-wrap {
-  overflow: auto;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background: var(--card-bg);
-}
-
-.monitoring-table-wrap table {
-  margin: 0;
-  min-width: 980px;
-}
-
-.monitoring-row-alert td {
-  background: #fff1f2 !important;
-}
-
-.monitoring-row-warn td {
-  background: #fffbeb !important;
-}
-
-.monitoring-check {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-width: 44px;
-  white-space: nowrap;
-}
-
-.monitoring-check input {
-  width: 18px;
-  height: 18px;
-}
-
-.monitoring-status {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 4px 9px;
-  font-size: 12px;
-  font-weight: 900;
-  color: #fff;
-  background: var(--text-muted-light);
-}
-
-.monitoring-status.done { background: var(--success); }
-.monitoring-status.wait { background: var(--warning); color: #3b2a00; }
-.monitoring-status.danger { background: var(--danger); }
-
 .summary-limit-note {
   margin: 12px 0;
   color: var(--text-muted-light);
@@ -1682,7 +1562,6 @@ tbody tr:nth-child(even) td {
     <nav>
       <button class="tab active" data-view="report">週次報告</button>
       <button class="tab" data-view="input">入力シート</button>
-      <button class="tab" data-view="monitoring">モニタリング</button>
       <button class="tab" data-view="summary">集計</button>
     </nav>
   </header>
@@ -1907,102 +1786,6 @@ tbody tr:nth-child(even) td {
       </div>
     </section>
 
-    <section id="view-monitoring" class="view">
-      <div class="view-head">
-        <div>
-          <h2>モニタリング管理</h2>
-          <p class="muted">モニタリング実施、請求、代理受領通知の抜け漏れを月単位で確認します。</p>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="monitoring-toolbar">
-          <button class="btn" type="button" id="monitoring-prev-month">前月</button>
-          <button class="btn" type="button" id="monitoring-next-month">翌月</button>
-          <label>表示月<input type="month" id="monitoring-month"></label>
-        </div>
-
-        <div class="monitoring-kpis">
-          <div class="monitoring-kpi"><span>未完了アラート</span><strong id="monitoring-alert-count">0件</strong></div>
-          <div class="monitoring-kpi"><span>署名返送待ち</span><strong id="monitoring-return-count">0件</strong></div>
-          <div class="monitoring-kpi"><span>請求未完了</span><strong id="monitoring-billing-count">0件</strong></div>
-          <div class="monitoring-kpi"><span>通知未送付</span><strong id="monitoring-notice-count">0件</strong></div>
-        </div>
-
-        <div class="monitoring-tabs">
-          <button class="monitoring-tab active" type="button" data-monitoring-tab="work">実施管理</button>
-          <button class="monitoring-tab" type="button" data-monitoring-tab="billing">請求管理</button>
-          <button class="monitoring-tab" type="button" data-monitoring-tab="notice">代理受領通知</button>
-        </div>
-
-        <div class="monitoring-panel active" data-monitoring-panel="work">
-          <h3 class="summary-section-title" id="monitoring-work-title">モニタリング実施管理</h3>
-          <p class="summary-limit-note">会議録が不要な場合は「会議録不要」にチェックしてください。未完了・返送待ちは色で表示します。</p>
-          <div class="monitoring-table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>氏名</th>
-                  <th>実施</th>
-                  <th>記録</th>
-                  <th>会議録必要</th>
-                  <th>会議録</th>
-                  <th>報告書</th>
-                  <th>郵送</th>
-                  <th>署名返送</th>
-                  <th>役所送付</th>
-                  <th>状態</th>
-                </tr>
-              </thead>
-              <tbody id="monitoring-work-body"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="monitoring-panel" data-monitoring-panel="billing">
-          <h3 class="summary-section-title" id="monitoring-billing-title">給付費請求管理</h3>
-          <p class="summary-limit-note">表示月の1日から10日に、前月モニタリング分の請求・送信を確認します。</p>
-          <div class="monitoring-table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>氏名</th>
-                  <th>対象月</th>
-                  <th>モ記録</th>
-                  <th>会議録</th>
-                  <th>報告書</th>
-                  <th>加算対象</th>
-                  <th>請求</th>
-                  <th>送信</th>
-                  <th>状態</th>
-                </tr>
-              </thead>
-              <tbody id="monitoring-billing-body"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="monitoring-panel" data-monitoring-panel="notice">
-          <h3 class="summary-section-title" id="monitoring-notice-title">代理受領通知管理</h3>
-          <p class="summary-limit-note">請求後の振込・代理受領通知を、モニタリングとは独立して月ごとに確認します。</p>
-          <div class="monitoring-table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>氏名</th>
-                  <th>通知月</th>
-                  <th>作成</th>
-                  <th>送付</th>
-                  <th>状態</th>
-                </tr>
-              </thead>
-              <tbody id="monitoring-notice-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <section id="view-summary" class="view">
       <div class="view-head">
         <div>
@@ -2133,7 +1916,6 @@ tbody tr:nth-child(even) td {
   <script>
     const STORAGE_KEY = "sns_operation_report_single_site_v3";
     const businesses = ["自事業所"];
-    const monitoringUsers = ["大場", "A", "B", "C", "D", "E", "F"];
     const snsTypes = ["X", "Instagram", "TikTok", "Threads", "YouTube"];
     const inquiryTypes = ["利用者問い合わせ", "職員問い合わせ", "その他"];
     const inquiryStatuses = ["未対応", "対応中", "対応済", "保留"];
@@ -2305,33 +2087,7 @@ tbody tr:nth-child(even) td {
             previous: 20 + index, current: 31 + index, limit: 200,
             operator: "入力者サンプル", inputAt: new Date(2026, 5, 14, 11, 30).toISOString()
           }))
-        ],
-        monitoring: monitoringUsers.map((userName, index) => ({
-          id: uid(),
-          userName,
-          month: "2026-05",
-          visited: index < 5,
-          recordDone: index < 5,
-          meetingRequired: index !== 0 && index !== 3,
-          meetingDone: index === 1 || index === 2,
-          reportDone: index < 4,
-          mailed: index < 3,
-          returned: index < 2,
-          officeSent: index === 0,
-          billingDone: index < 2,
-          billingSent: index === 0,
-          addOn: index === 1 || index === 2,
-          continueType: "継続",
-          note: ""
-        })),
-        agencyNotices: monitoringUsers.map((userName, index) => ({
-          id: uid(),
-          userName,
-          month: "2026-08",
-          created: index < 2,
-          sent: index === 0,
-          note: ""
-        }))
+        ]
       };
     }
 
@@ -2350,9 +2106,7 @@ tbody tr:nth-child(even) td {
           workMetrics: parsed.workMetrics || [],
           followers: parsed.followers || [],
           inquiries: parsed.inquiries || [],
-          lsteps: parsed.lsteps || [],
-          monitoring: parsed.monitoring || [],
-          agencyNotices: parsed.agencyNotices || []
+          lsteps: parsed.lsteps || []
         };
         if (!loaded.posts.length && !loaded.workMetrics.length && !loaded.followers.length && !loaded.inquiries.length && !loaded.lsteps.length) {
           const data = sampleData();
@@ -3059,7 +2813,6 @@ tbody tr:nth-child(even) td {
     function renderAll() {
       renderReport();
       renderRecords();
-      renderMonitoring();
       renderSummary();
     }
 
@@ -3070,7 +2823,6 @@ tbody tr:nth-child(even) td {
       if (!$("#week-end").value) $("#week-end").value = currentWeek.end;
       if (!$("#record-week-start").value) $("#record-week-start").value = $("#week-start").value;
       if (!$("#record-week-end").value) $("#record-week-end").value = $("#week-end").value;
-      if (!$("#monitoring-month").value) $("#monitoring-month").value = currentMonthIso();
       const summaryBounds = summaryDateBounds();
       if (!$("#summary-start").value) $("#summary-start").value = summaryBounds.start;
       if (!$("#summary-end").value) $("#summary-end").value = summaryBounds.end;
@@ -3148,179 +2900,6 @@ tbody tr:nth-child(even) td {
     function setSummaryTab(name) {
       $$("[data-summary-tab]").forEach(tab => tab.classList.toggle("active", tab.dataset.summaryTab === name));
       $$("[data-summary-panel]").forEach(panel => panel.classList.toggle("active", panel.dataset.summaryPanel === name));
-    }
-
-    function currentMonthIso() {
-      const now = new Date();
-      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    }
-
-    function addMonths(value, offset) {
-      const [year, month] = (value || currentMonthIso()).split("-").map(Number);
-      const d = new Date(year, (month || 1) - 1 + offset, 1);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    }
-
-    function monthLabel(value) {
-      if (!value) return "-";
-      const [year, month] = value.split("-");
-      return `${year}年${Number(month)}月`;
-    }
-
-    function ensureMonitoringRows(month) {
-      data.monitoring = data.monitoring || [];
-      let changed = false;
-      monitoringUsers.forEach(userName => {
-        if (!data.monitoring.some(row => row.userName === userName && row.month === month)) {
-          data.monitoring.push({
-            id: uid(),
-            userName,
-            month,
-            visited: false,
-            recordDone: false,
-            meetingRequired: true,
-            meetingDone: false,
-            reportDone: false,
-            mailed: false,
-            returned: false,
-            officeSent: false,
-            billingDone: false,
-            billingSent: false,
-            addOn: false,
-            continueType: "継続",
-            note: ""
-          });
-          changed = true;
-        }
-      });
-      if (changed) saveData(data);
-      return data.monitoring.filter(row => row.month === month).sort((a, b) => a.userName.localeCompare(b.userName, "ja", { numeric: true }));
-    }
-
-    function ensureAgencyNoticeRows(month) {
-      data.agencyNotices = data.agencyNotices || [];
-      let changed = false;
-      monitoringUsers.forEach(userName => {
-        if (!data.agencyNotices.some(row => row.userName === userName && row.month === month)) {
-          data.agencyNotices.push({
-            id: uid(),
-            userName,
-            month,
-            created: false,
-            sent: false,
-            note: ""
-          });
-          changed = true;
-        }
-      });
-      if (changed) saveData(data);
-      return data.agencyNotices.filter(row => row.month === month).sort((a, b) => a.userName.localeCompare(b.userName, "ja", { numeric: true }));
-    }
-
-    function monitoringComplete(row) {
-      const meetingOk = !row.meetingRequired || row.meetingDone;
-      return row.visited && row.recordDone && meetingOk && row.reportDone && row.mailed && row.returned && row.officeSent;
-    }
-
-    function monitoringStatus(row) {
-      if (monitoringComplete(row)) return { text: "完了", type: "done" };
-      if (row.mailed && !row.returned) return { text: "署名返送待ち", type: "wait" };
-      if (row.returned && !row.officeSent) return { text: "役所送付待ち", type: "danger" };
-      return { text: "未完了", type: "danger" };
-    }
-
-    function billingStatus(row) {
-      const ready = row.recordDone && (!row.meetingRequired || row.meetingDone) && row.reportDone;
-      if (row.billingDone && row.billingSent) return { text: "完了", type: "done" };
-      if (!ready) return { text: "資料不足", type: "danger" };
-      if (row.billingDone && !row.billingSent) return { text: "送信待ち", type: "wait" };
-      return { text: "請求待ち", type: "danger" };
-    }
-
-    function noticeStatus(row) {
-      if (row.created && row.sent) return { text: "完了", type: "done" };
-      if (row.created && !row.sent) return { text: "送付待ち", type: "wait" };
-      return { text: "未作成", type: "danger" };
-    }
-
-    function monitoringCheckbox(kind, row, field, label = "") {
-      return `<label class="monitoring-check">${label}<input type="checkbox" data-monitoring-kind="${kind}" data-id="${row.id}" data-field="${field}" ${row[field] ? "checked" : ""}></label>`;
-    }
-
-    function renderMonitoring() {
-      const month = $("#monitoring-month").value || currentMonthIso();
-      const workRows = ensureMonitoringRows(month);
-      const billingSourceMonth = addMonths(month, -1);
-      const billingRows = ensureMonitoringRows(billingSourceMonth);
-      const noticeRows = ensureAgencyNoticeRows(month);
-
-      $("#monitoring-work-title").textContent = `${monthLabel(month)} モニタリング実施管理`;
-      $("#monitoring-billing-title").textContent = `${monthLabel(month)} 請求管理（${monthLabel(billingSourceMonth)}実施分）`;
-      $("#monitoring-notice-title").textContent = `${monthLabel(month)} 代理受領通知管理`;
-
-      const alertCount = workRows.filter(row => !monitoringComplete(row)).length;
-      const returnCount = workRows.filter(row => row.mailed && !row.returned).length;
-      const billingCount = billingRows.filter(row => !(row.billingDone && row.billingSent)).length;
-      const noticeCount = noticeRows.filter(row => !row.sent).length;
-      $("#monitoring-alert-count").textContent = `${alertCount}件`;
-      $("#monitoring-return-count").textContent = `${returnCount}件`;
-      $("#monitoring-billing-count").textContent = `${billingCount}件`;
-      $("#monitoring-notice-count").textContent = `${noticeCount}件`;
-
-      $("#monitoring-work-body").innerHTML = workRows.map(row => {
-        const status = monitoringStatus(row);
-        const rowClass = status.type === "done" ? "" : status.type === "wait" ? "monitoring-row-warn" : "monitoring-row-alert";
-        return `<tr class="${rowClass}">
-          <td><strong>${escapeHtml(row.userName)}</strong></td>
-          <td>${monitoringCheckbox("monitoring", row, "visited")}</td>
-          <td>${monitoringCheckbox("monitoring", row, "recordDone")}</td>
-          <td>${monitoringCheckbox("monitoring", row, "meetingRequired", "要")}</td>
-          <td>${row.meetingRequired ? monitoringCheckbox("monitoring", row, "meetingDone") : '<span class="pill ok">不要</span>'}</td>
-          <td>${monitoringCheckbox("monitoring", row, "reportDone")}</td>
-          <td>${monitoringCheckbox("monitoring", row, "mailed")}</td>
-          <td>${monitoringCheckbox("monitoring", row, "returned")}</td>
-          <td>${monitoringCheckbox("monitoring", row, "officeSent")}</td>
-          <td><span class="monitoring-status ${status.type}">${status.text}</span></td>
-        </tr>`;
-      }).join("");
-
-      $("#monitoring-billing-body").innerHTML = billingRows.map(row => {
-        const status = billingStatus(row);
-        const meetingText = row.meetingRequired ? (row.meetingDone ? "済" : "未") : "不要";
-        const rowClass = status.type === "done" ? "" : status.type === "wait" ? "monitoring-row-warn" : "monitoring-row-alert";
-        return `<tr class="${rowClass}">
-          <td><strong>${escapeHtml(row.userName)}</strong></td>
-          <td>${escapeHtml(monthLabel(row.month))}</td>
-          <td>${row.recordDone ? "済" : "未"}</td>
-          <td>${meetingText}</td>
-          <td>${row.reportDone ? "済" : "未"}</td>
-          <td>${monitoringCheckbox("monitoring", row, "addOn")}</td>
-          <td>${monitoringCheckbox("monitoring", row, "billingDone")}</td>
-          <td>${monitoringCheckbox("monitoring", row, "billingSent")}</td>
-          <td><span class="monitoring-status ${status.type}">${status.text}</span></td>
-        </tr>`;
-      }).join("");
-
-      $("#monitoring-notice-body").innerHTML = noticeRows.map(row => {
-        const status = noticeStatus(row);
-        const rowClass = status.type === "done" ? "" : status.type === "wait" ? "monitoring-row-warn" : "monitoring-row-alert";
-        return `<tr class="${rowClass}">
-          <td><strong>${escapeHtml(row.userName)}</strong></td>
-          <td>${escapeHtml(monthLabel(row.month))}</td>
-          <td>${monitoringCheckbox("notice", row, "created")}</td>
-          <td>${monitoringCheckbox("notice", row, "sent")}</td>
-          <td><span class="monitoring-status ${status.type}">${status.text}</span></td>
-        </tr>`;
-      }).join("");
-    }
-
-    function updateMonitoringCheck(kind, id, field, checked) {
-      const collection = kind === "notice" ? data.agencyNotices : data.monitoring;
-      const row = collection?.find(item => item.id === id);
-      if (!row) return;
-      row[field] = checked;
-      saveData(data);
-      renderMonitoring();
     }
 
     function formObject(form) {
@@ -3533,30 +3112,6 @@ tbody tr:nth-child(even) td {
     $("#record-week-end").addEventListener("change", () => {
       recordAllMode = false;
       renderRecords();
-    });
-
-    $("#monitoring-prev-month").addEventListener("click", () => {
-      $("#monitoring-month").value = addMonths($("#monitoring-month").value, -1);
-      renderMonitoring();
-    });
-    $("#monitoring-next-month").addEventListener("click", () => {
-      $("#monitoring-month").value = addMonths($("#monitoring-month").value, 1);
-      renderMonitoring();
-    });
-    $("#monitoring-month").addEventListener("change", renderMonitoring);
-    $$("[data-monitoring-tab]").forEach(button => {
-      button.addEventListener("click", () => {
-        $$("[data-monitoring-tab]").forEach(tab => tab.classList.remove("active"));
-        $$("[data-monitoring-panel]").forEach(panel => panel.classList.remove("active"));
-        button.classList.add("active");
-        $(`[data-monitoring-panel="${button.dataset.monitoringTab}"]`).classList.add("active");
-        renderMonitoring();
-      });
-    });
-    $("#view-monitoring").addEventListener("change", event => {
-      const target = event.target;
-      if (!target.matches("[data-monitoring-kind]")) return;
-      updateMonitoringCheck(target.dataset.monitoringKind, target.dataset.id, target.dataset.field, target.checked);
     });
 
     $("#export-excel").addEventListener("click", () => {
