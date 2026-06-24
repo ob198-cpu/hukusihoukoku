@@ -240,6 +240,59 @@ textarea { min-height: 90px; resize: vertical; }
   font-size: 12px;
 }
 
+.record-manager-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.record-manager-head h3 {
+  margin: 2px 0 6px;
+}
+
+.section-kicker {
+  margin: 0;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.record-manager-note {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 14px;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid var(--primary);
+  border-radius: 6px;
+  padding: 12px 14px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 13px;
+}
+
+.record-manager-note strong {
+  color: #172554;
+}
+
+.record-target-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.record-target-list span {
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #fff;
+  color: #1e40af;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .record-actions,
 .post-form-actions,
 .backup-actions {
@@ -250,10 +303,17 @@ textarea { min-height: 90px; resize: vertical; }
 
 .record-search-row {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
+  grid-template-columns: minmax(220px, 1fr) repeat(4, auto);
   gap: 10px;
   align-items: end;
   margin: 10px 0;
+}
+
+.record-tool-note {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .record-maintenance {
@@ -1709,6 +1769,16 @@ tbody tr:nth-child(even) td {
 
 @media (max-width: 1000px) {
   header, .view-head { flex-direction: column; align-items: stretch; gap: 16px; }
+  .record-manager-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .record-week-controls,
+  .record-search-row {
+    grid-template-columns: 1fr;
+  }
+
   .grid-2, .grid-3, .input-layout, .bottom-grid, .slide1-top, .sns-three, .sns-two, .slide2-bottom, .follower-summary-grid {
     grid-template-columns: 1fr;
   }
@@ -1960,12 +2030,24 @@ tbody tr:nth-child(even) td {
         </div>
 
         <div class="panel record-list">
-          <div class="view-head" style="margin-bottom:10px;">
+          <div class="record-manager-head">
             <div>
-              <h3>入力済み一覧</h3>
-              <p class="muted">入力者・入力時間も一覧に残ります。</p>
+              <p class="section-kicker">データ管理</p>
+              <h3>入力済みデータの修正・削除</h3>
+              <p class="muted">投稿以外も、一覧から古いデータを探して編集・削除できます。</p>
             </div>
-            <button class="btn primary" type="button" id="export-excel">投稿入力をExcel出力</button>
+            <button class="btn primary" type="button" id="export-excel">表示中データをExcel出力</button>
+          </div>
+          <div class="record-manager-note">
+            <strong>使い方: 「全て表示」または検索で古いデータを探し、対象行の「編集」「削除」を押してください。</strong>
+            <span>バックアップ保存・復元・操作履歴もこの一覧上部から操作できます。</span>
+            <div class="record-target-list" aria-label="編集削除対象">
+              <span>投稿</span>
+              <span>作品別推移</span>
+              <span>フォロワー管理</span>
+              <span>問い合わせ入力</span>
+              <span>Lステップ管理</span>
+            </div>
           </div>
           <div class="input-tabs">
             <button class="input-tab active" type="button" data-record-tab="post">投稿入力</button>
@@ -1985,14 +2067,13 @@ tbody tr:nth-child(even) td {
             <label>過去データ検索<input type="search" id="record-search" placeholder="日付・SNS・内容・入力者で検索"></label>
             <button class="btn" type="button" id="clear-record-search">検索クリア</button>
             <button class="btn" type="button" id="export-backup">バックアップ保存</button>
+            <label class="btn" for="restore-backup">バックアップ復元</label>
+            <input type="file" id="restore-backup" accept="application/json,.json" hidden>
+            <button class="btn" type="button" id="export-history">履歴を保存</button>
           </div>
+          <p class="record-tool-note">編集・削除は現在選択しているタブの表の右端「操作」列に表示されます。検索中は期間に関係なく該当データを表示します。</p>
           <div id="record-tables"></div>
           <div class="record-maintenance">
-            <div class="backup-actions">
-              <label class="btn" for="restore-backup">バックアップ復元</label>
-              <input type="file" id="restore-backup" accept="application/json,.json" hidden>
-              <button class="btn" type="button" id="export-history">履歴を保存</button>
-            </div>
             <details class="history-panel">
               <summary>操作履歴</summary>
               <div id="history-list"></div>
