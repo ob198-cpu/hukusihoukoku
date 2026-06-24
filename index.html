@@ -2050,7 +2050,8 @@ tbody tr:nth-child(even) td {
             </div>
           </div>
           <div class="input-tabs">
-            <button class="input-tab active" type="button" data-record-tab="post">投稿入力</button>
+            <button class="input-tab active" type="button" data-record-tab="all">全データ</button>
+            <button class="input-tab" type="button" data-record-tab="post">投稿入力</button>
             <button class="input-tab" type="button" data-record-tab="work">作品別推移</button>
             <button class="input-tab" type="button" data-record-tab="follower">フォロワー管理</button>
             <button class="input-tab" type="button" data-record-tab="inquiry">問い合わせ入力</button>
@@ -2071,7 +2072,7 @@ tbody tr:nth-child(even) td {
             <input type="file" id="restore-backup" accept="application/json,.json" hidden>
             <button class="btn" type="button" id="export-history">履歴を保存</button>
           </div>
-          <p class="record-tool-note">編集・削除は現在選択しているタブの表の右端「操作」列に表示されます。検索中は期間に関係なく該当データを表示します。</p>
+          <p class="record-tool-note">「全データ」では投稿以外も同じ表に表示します。各行の右端から編集・削除できます。検索中は期間に関係なく該当データを表示します。</p>
           <div id="record-tables"></div>
           <div class="record-maintenance">
             <details class="history-panel">
@@ -2884,7 +2885,7 @@ tbody tr:nth-child(even) td {
     }
 
     function renderRecords() {
-      const active = document.querySelector("[data-record-tab].active")?.dataset.recordTab || "post";
+      const active = document.querySelector("[data-record-tab].active")?.dataset.recordTab || "all";
       const sortedPosts = sortedPostRows();
       const { start, end } = recordWeekDefaults();
       const query = recordSearchQuery();
@@ -2894,15 +2895,16 @@ tbody tr:nth-child(even) td {
       const weeklyLsteps = data.lsteps.filter(item => recordInScope(item, "lstep", start, end) && recordMatches(item, "lstep", query));
       const visiblePosts = query || recordAllMode ? sortedPosts : sortedPosts.slice(0, 30);
       const tables = {
+        all: allRecordsHtml(),
         post: `<h3>投稿 ${recordCountLabel(sortedPosts.length)}</h3>${postTableHtml(visiblePosts)}`,
         work: `<h3>作品別推移 ${recordCountLabel(workRows.length)}</h3>${workRecordsHtml(workRows)}`,
         follower: `<h3>フォロワー ${recordCountLabel(followerRows.length)}</h3>${followerRecordsHtml(followerRows)}`,
         inquiry: `<h3>問い合わせ ${recordCountLabel(weeklyInquiries.length)}</h3>${inquiryRecordsHtml(weeklyInquiries)}`,
         lstep: `<h3>Lステップ ${recordCountLabel(weeklyLsteps.length)}</h3>${lstepRecordsHtml(weeklyLsteps)}`
       };
-      $("#record-tables").innerHTML = tables[active] || tables.post;
-      const labels = { post: "投稿入力", work: "作品別推移", follower: "フォロワー管理", inquiry: "問い合わせ入力", lstep: "Lステップ管理" };
-      $("#export-excel").textContent = `${labels[active] || "投稿入力"}をExcel出力`;
+      $("#record-tables").innerHTML = tables[active] || tables.all;
+      const labels = { all: "全データ", post: "投稿入力", work: "作品別推移", follower: "フォロワー管理", inquiry: "問い合わせ入力", lstep: "Lステップ管理" };
+      $("#export-excel").textContent = `${labels[active] || "全データ"}をExcel出力`;
       bindRecordRowActions();
       if (active === "post") {
         bindPostSortHeaders();
@@ -3033,6 +3035,59 @@ tbody tr:nth-child(even) td {
           <button class="btn danger small" type="button" data-delete-record="${escapeHtml(type)}" data-record-id="${escapeHtml(id)}">削除</button>
         </div>
       `;
+    }
+
+    function recordPrimaryDate(type, item = {}) {
+      if (type === "lstep") return item.checkDate || item.weekEnd || item.weekStart || "";
+      return item.date || item.weekEnd || item.weekStart || "";
+    }
+
+    function recordSummary(type, item = {}) {
+      if (type === "post") return `${item.sns || ""} / ${item.content || ""} / ${Number(item.impressions || 0).toLocaleString()}Imp`.trim();
+      if (type === "work") return `${item.workName || ""} / ${Number(item.impressions || 0).toLocaleString()}`.trim();
+      if (type === "follower") return `${item.business || ""} / ${Number(item.followers || 0).toLocaleString()}人`.trim();
+      if (type === "inquiry") return `${item.sns || ""} / ${item.type || ""} / ${item.content || ""} / ${item.status || ""}`.trim();
+      if (type === "lstep") {
+        const info = lstepInfo(item);
+        return `今週 ${Number(item.current || 0).toLocaleString()}通 / 残 ${Number(info.remaining || 0).toLocaleString()}通`;
+      }
+      return recordLabel(type, item);
+    }
+
+    function allRecordRows() {
+      const query = recordSearchQuery();
+      const collections = [
+        ["post", data.posts],
+        ["work", data.workMetrics],
+        ["follower", data.followers],
+        ["inquiry", data.inquiries],
+        ["lstep", data.lsteps]
+      ];
+      return collections.flatMap(([type, rows]) => rows
+        .filter(item => recordMatches(item, type, query))
+        .map(item => ({ type, item })))
+        .sort((a, b) => {
+          const dateCompare = (recordPrimaryDate(b.type, b.item) || "").localeCompare(recordPrimaryDate(a.type, a.item) || "");
+          if (dateCompare) return dateCompare;
+          return (b.item.inputAt || "").localeCompare(a.item.inputAt || "");
+        });
+    }
+
+    function allRecordsHtml() {
+      const rows = allRecordRows();
+      return `<h3>全データ ${recordCountLabel(rows.length)}</h3>
+        <table><thead><tr>
+          <th>種別</th><th>日付</th><th>内容</th><th>入力者</th><th>入力時間</th><th>操作</th>
+        </tr></thead><tbody>
+          ${rows.map(({ type, item }) => `<tr>
+            <td><span class="pill">${escapeHtml(recordTypeLabels[type] || type)}</span></td>
+            <td>${dateLabel(recordPrimaryDate(type, item))}</td>
+            <td>${escapeHtml(recordSummary(type, item))}</td>
+            <td>${escapeHtml(item.operator || "")}</td>
+            <td>${escapeHtml(fullDateTime(item.inputAt))}</td>
+            <td>${recordActionButtons(type, item.id)}</td>
+          </tr>`).join("") || `<tr><td colspan="6">データはありません。</td></tr>`}
+        </tbody></table>`;
     }
 
     function workRecordsHtml(rows) {
@@ -4249,14 +4304,16 @@ tbody tr:nth-child(even) td {
     });
 
     $("#export-excel").addEventListener("click", () => {
-      const active = document.querySelector("[data-record-tab].active")?.dataset.recordTab || "post";
-      const sheets = [excelSheetFor(active)];
+      const active = document.querySelector("[data-record-tab].active")?.dataset.recordTab || "all";
+      const sheets = active === "all"
+        ? ["post", "work", "follower", "inquiry", "lstep"].map(excelSheetFor)
+        : [excelSheetFor(active)];
       const xml = excelXml(sheets);
       const blob = new Blob(["\uFEFF" + xml], { type: "application/vnd.ms-excel;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `SNS運用_${sheets[0].name}_${todayIso()}.xls`;
+      a.download = `SNS運用_${active === "all" ? "全データ" : sheets[0].name}_${todayIso()}.xls`;
       a.click();
       URL.revokeObjectURL(url);
     });
