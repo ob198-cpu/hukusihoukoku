@@ -1811,7 +1811,6 @@ tbody tr:nth-child(even) td {
     <nav>
       <button class="tab active" data-view="report">週次報告</button>
       <button class="tab" data-view="input">入力シート</button>
-      <button class="tab" data-view="monitoring">モニタリング</button>
       <button class="tab" data-view="summary">集計</button>
     </nav>
   </header>
@@ -2079,102 +2078,6 @@ tbody tr:nth-child(even) td {
               <summary>操作履歴</summary>
               <div id="history-list"></div>
             </details>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="view-monitoring" class="view">
-      <div class="view-head">
-        <div>
-          <h2>モニタリング管理</h2>
-          <p class="muted">モニタリング実施、請求、代理受領通知の抜け漏れを月単位で確認します。</p>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="monitoring-toolbar">
-          <button class="btn" type="button" id="monitoring-prev-month">前月</button>
-          <button class="btn" type="button" id="monitoring-next-month">翌月</button>
-          <label>表示月<input type="month" id="monitoring-month"></label>
-        </div>
-
-        <div class="monitoring-kpis">
-          <div class="monitoring-kpi"><span>未完了アラート</span><strong id="monitoring-alert-count">0件</strong></div>
-          <div class="monitoring-kpi"><span>署名返送待ち</span><strong id="monitoring-return-count">0件</strong></div>
-          <div class="monitoring-kpi"><span>請求未完了</span><strong id="monitoring-billing-count">0件</strong></div>
-          <div class="monitoring-kpi"><span>通知未送付</span><strong id="monitoring-notice-count">0件</strong></div>
-        </div>
-
-        <div class="monitoring-tabs">
-          <button class="monitoring-tab active" type="button" data-monitoring-tab="work">実施管理</button>
-          <button class="monitoring-tab" type="button" data-monitoring-tab="billing">請求管理</button>
-          <button class="monitoring-tab" type="button" data-monitoring-tab="notice">代理受領通知</button>
-        </div>
-
-        <div class="monitoring-panel active" data-monitoring-panel="work">
-          <h3 class="summary-section-title" id="monitoring-work-title">モニタリング実施管理</h3>
-          <p class="summary-limit-note">会議録が不要な場合は「会議録不要」にチェックしてください。未完了・返送待ちは色で表示します。</p>
-          <div class="monitoring-table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>氏名</th>
-                  <th>実施</th>
-                  <th>記録</th>
-                  <th>会議録必要</th>
-                  <th>会議録</th>
-                  <th>報告書</th>
-                  <th>郵送</th>
-                  <th>署名返送</th>
-                  <th>役所送付</th>
-                  <th>状態</th>
-                </tr>
-              </thead>
-              <tbody id="monitoring-work-body"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="monitoring-panel" data-monitoring-panel="billing">
-          <h3 class="summary-section-title" id="monitoring-billing-title">給付費請求管理</h3>
-          <p class="summary-limit-note">表示月の1日から10日に、前月モニタリング分の請求・送信を確認します。</p>
-          <div class="monitoring-table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>氏名</th>
-                  <th>対象月</th>
-                  <th>モ記録</th>
-                  <th>会議録</th>
-                  <th>報告書</th>
-                  <th>加算対象</th>
-                  <th>請求</th>
-                  <th>送信</th>
-                  <th>状態</th>
-                </tr>
-              </thead>
-              <tbody id="monitoring-billing-body"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="monitoring-panel" data-monitoring-panel="notice">
-          <h3 class="summary-section-title" id="monitoring-notice-title">代理受領通知管理</h3>
-          <p class="summary-limit-note">請求後の振込・代理受領通知を、モニタリングとは独立して月ごとに確認します。</p>
-          <div class="monitoring-table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>氏名</th>
-                  <th>通知月</th>
-                  <th>作成</th>
-                  <th>送付</th>
-                  <th>状態</th>
-                </tr>
-              </thead>
-              <tbody id="monitoring-notice-body"></tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -3676,7 +3579,7 @@ tbody tr:nth-child(even) td {
     function renderAll() {
       renderReport();
       renderRecords();
-      renderMonitoring();
+      if ($("#view-monitoring")) renderMonitoring();
       renderSummary();
     }
 
@@ -3687,7 +3590,7 @@ tbody tr:nth-child(even) td {
       if (!$("#week-end").value) $("#week-end").value = currentWeek.end;
       if (!$("#record-week-start").value) $("#record-week-start").value = $("#week-start").value;
       if (!$("#record-week-end").value) $("#record-week-end").value = $("#week-end").value;
-      if (!$("#monitoring-month").value) $("#monitoring-month").value = currentMonthIso();
+      if ($("#monitoring-month") && !$("#monitoring-month").value) $("#monitoring-month").value = currentMonthIso();
       const summaryBounds = summaryDateBounds();
       if (!$("#summary-start").value) $("#summary-start").value = summaryBounds.start;
       if (!$("#summary-end").value) $("#summary-end").value = summaryBounds.end;
@@ -4279,30 +4182,31 @@ tbody tr:nth-child(even) td {
       renderRecords();
     });
 
-    $("#monitoring-prev-month").addEventListener("click", () => {
-      $("#monitoring-month").value = addMonths($("#monitoring-month").value, -1);
-      renderMonitoring();
-    });
-    $("#monitoring-next-month").addEventListener("click", () => {
-      $("#monitoring-month").value = addMonths($("#monitoring-month").value, 1);
-      renderMonitoring();
-    });
-    $("#monitoring-month").addEventListener("change", renderMonitoring);
-    $$("[data-monitoring-tab]").forEach(button => {
-      button.addEventListener("click", () => {
-        $$("[data-monitoring-tab]").forEach(tab => tab.classList.remove("active"));
-        $$("[data-monitoring-panel]").forEach(panel => panel.classList.remove("active"));
-        button.classList.add("active");
-        $(`[data-monitoring-panel="${button.dataset.monitoringTab}"]`).classList.add("active");
+    if ($("#view-monitoring")) {
+      $("#monitoring-prev-month").addEventListener("click", () => {
+        $("#monitoring-month").value = addMonths($("#monitoring-month").value, -1);
         renderMonitoring();
       });
-    });
-    $("#view-monitoring").addEventListener("change", event => {
-      const target = event.target;
-      if (!target.matches("[data-monitoring-kind]")) return;
-      updateMonitoringCheck(target.dataset.monitoringKind, target.dataset.id, target.dataset.field, target.checked);
-    });
-
+      $("#monitoring-next-month").addEventListener("click", () => {
+        $("#monitoring-month").value = addMonths($("#monitoring-month").value, 1);
+        renderMonitoring();
+      });
+      $("#monitoring-month").addEventListener("change", renderMonitoring);
+      $$("[data-monitoring-tab]").forEach(button => {
+        button.addEventListener("click", () => {
+          $$("[data-monitoring-tab]").forEach(tab => tab.classList.remove("active"));
+          $$("[data-monitoring-panel]").forEach(panel => panel.classList.remove("active"));
+          button.classList.add("active");
+          $(`[data-monitoring-panel="${button.dataset.monitoringTab}"]`).classList.add("active");
+          renderMonitoring();
+        });
+      });
+      $("#view-monitoring").addEventListener("change", event => {
+        const target = event.target;
+        if (!target.matches("[data-monitoring-kind]")) return;
+        updateMonitoringCheck(target.dataset.monitoringKind, target.dataset.id, target.dataset.field, target.checked);
+      });
+    }
     $("#export-excel").addEventListener("click", () => {
       const active = document.querySelector("[data-record-tab].active")?.dataset.recordTab || "all";
       const sheets = active === "all"
