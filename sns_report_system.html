@@ -2874,10 +2874,12 @@ tbody tr:nth-child(even) td {
 
     function recordInScope(item, type, start, end) {
       if (recordAllMode || recordSearchQuery()) return true;
+      const primaryDate = recordPrimaryDate(type, item);
+      if (primaryDate) return primaryDate >= start && primaryDate <= end;
       if (type === "post" || type === "inquiry" || type === "lstep") {
         return item.weekStart === start && item.weekEnd === end;
       }
-      return item.date >= start && item.date <= end;
+      return false;
     }
 
     function renderRecords() {
@@ -3052,6 +3054,7 @@ tbody tr:nth-child(even) td {
 
     function allRecordRows() {
       const query = recordSearchQuery();
+      const { start, end } = recordWeekDefaults();
       const collections = [
         ["post", data.posts],
         ["work", data.workMetrics],
@@ -3060,7 +3063,7 @@ tbody tr:nth-child(even) td {
         ["lstep", data.lsteps]
       ];
       return collections.flatMap(([type, rows]) => rows
-        .filter(item => recordMatches(item, type, query))
+        .filter(item => recordInScope(item, type, start, end) && recordMatches(item, type, query))
         .map(item => ({ type, item })))
         .sort((a, b) => {
           const dateCompare = (recordPrimaryDate(b.type, b.item) || "").localeCompare(recordPrimaryDate(a.type, a.item) || "");
@@ -4365,7 +4368,7 @@ tbody tr:nth-child(even) td {
     function excelSheetFor(type) {
       const { start, end } = recordWeekDefaults();
       if (type === "inquiry") {
-        const rows = data.inquiries.filter(item => isRecordAllMode() || (item.weekStart === start && item.weekEnd === end));
+        const rows = data.inquiries.filter(item => isRecordAllMode() || recordInScope(item, "inquiry", start, end));
         return {
           name: "問い合わせ入力",
           rows: [
@@ -4409,7 +4412,7 @@ tbody tr:nth-child(even) td {
         };
       }
       if (type === "lstep") {
-        const rows = data.lsteps.filter(item => isRecordAllMode() || (item.weekStart === start && item.weekEnd === end));
+        const rows = data.lsteps.filter(item => isRecordAllMode() || recordInScope(item, "lstep", start, end));
         return {
           name: "Lステップ管理",
           rows: [
