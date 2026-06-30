@@ -2614,6 +2614,8 @@ tbody tr:nth-child(even) td {
     }
 
     function formWeekDefaults(form) {
+      const postedDate = form.querySelector("[name='date'], [name='checkDate']")?.value;
+      if (postedDate) return weekRangeFromStart(postedDate);
       const fallback = currentWeekDefaults();
       return weekRangeFromStart(form.querySelector("[name='weekStart']")?.value || fallback.start);
     }
@@ -3723,13 +3725,22 @@ tbody tr:nth-child(even) td {
       $$("[data-selected-week-label]").forEach(label => {
         label.textContent = weekBlockLabel(start, end);
       });
-      $$("input[name='date'], input[name='checkDate']").forEach(input => {
-        input.min = start;
-        input.max = end;
-        if (input.value && (input.value < start || input.value > end)) input.value = start;
-      });
+
     }
 
+    function syncWeekFromPostDate(input) {
+      if (!input?.value) return;
+      const form = input.closest("form");
+      if (!form?.querySelector("[name='weekStart']")) return;
+      recordAllMode = false;
+      const { start, end } = weekRangeFromStart(input.value);
+      setMainWeek(start);
+      setRecordWeek(start);
+      form.querySelector("[name='weekStart']").value = start;
+      form.querySelector("[name='weekEnd']").value = end;
+      updateFormWeekLabel(form);
+      renderAll();
+    }
     function updateFormWeekLabel(form) {
       const start = form?.querySelector("[name='weekStart']")?.value;
       const end = form?.querySelector("[name='weekEnd']")?.value || addDays(start, 6);
@@ -4233,6 +4244,9 @@ tbody tr:nth-child(even) td {
     $("#next-week").addEventListener("click", () => moveWeek(7));
     $("#input-prev-week").addEventListener("click", () => moveWeek(-7));
     $("#input-next-week").addEventListener("click", () => moveWeek(7));
+    $$("input[name='date'], input[name='checkDate']").forEach(input => {
+      input.addEventListener("change", () => syncWeekFromPostDate(input));
+    });
     $("#show-impression-breakdown").addEventListener("click", event => {
       event.preventDefault();
       showSummaryBreakdown();
