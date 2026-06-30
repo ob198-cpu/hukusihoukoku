@@ -462,6 +462,53 @@ textarea { min-height: 90px; resize: vertical; }
   flex-grow: 1;
 }
 
+.week-select-label {
+  min-width: 280px;
+  flex: 1 1 320px;
+}
+
+.week-select-label select {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.week-range-card,
+.selected-week-field {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-main);
+}
+
+.week-range-card {
+  min-width: 220px;
+  padding: 10px 12px;
+  font-weight: 800;
+}
+
+.week-range-card span,
+.selected-week-field span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.selected-week-field {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+}
+
+.selected-week-field strong {
+  font-size: 15px;
+}
+
 .report-section {
   margin-top: 0;
   border: 0;
@@ -1832,11 +1879,11 @@ tbody tr:nth-child(even) td {
           <div class="week-controls no-print">
             <button class="btn" type="button" id="prev-week">前週</button>
             <button class="btn" type="button" id="next-week">翌週</button>
-            <div class="grid-3">
-              <label>週開始日<input type="date" id="week-start"></label>
-              <label>週終了日<input type="date" id="week-end"></label>
-              <select id="report-business" hidden></select>
-            </div>
+            <label class="week-select-label">週ブロック<select id="week-select" aria-label="対象週"></select></label>
+            <div class="week-range-card"><span>選択中の週</span><strong id="week-range-label">-</strong></div>
+            <input type="hidden" id="week-start">
+            <input type="hidden" id="week-end">
+            <select id="report-business" hidden></select>
           </div>
 
           <div class="slide1-top">
@@ -1906,6 +1953,13 @@ tbody tr:nth-child(even) td {
         </div>
       </div>
 
+      <div class="week-controls input-week-controls">
+        <button class="btn" type="button" id="input-prev-week">前週</button>
+        <button class="btn" type="button" id="input-next-week">翌週</button>
+        <label class="week-select-label">週ブロック<select id="input-week-select" aria-label="入力シートの対象週"></select></label>
+        <div class="week-range-card"><span>選択中の週</span><strong id="input-week-range-label">-</strong></div>
+      </div>
+
       <div class="input-layout">
         <div>
           <div class="input-tabs">
@@ -1918,9 +1972,13 @@ tbody tr:nth-child(even) td {
           <form class="panel stack input-form-panel active" id="post-form" data-input-panel="post">
             <h3>投稿入力</h3>
             <input type="hidden" name="postId">
+            <div class="selected-week-field">
+              <span>対象週</span>
+              <strong data-selected-week-label>-</strong>
+              <input type="hidden" name="weekStart">
+              <input type="hidden" name="weekEnd">
+            </div>
             <div class="grid-2">
-              <label>週開始日<input type="date" name="weekStart" required></label>
-              <label>週終了日<input type="date" name="weekEnd" required></label>
               <label>投稿日<input type="date" name="date" required></label>
               <label>SNS種別<select name="sns" required></select></label>
               <label>インプレッション/再生数<input type="number" name="impressions" min="0" value="0"></label>
@@ -1989,9 +2047,13 @@ tbody tr:nth-child(even) td {
           <form class="panel stack input-form-panel" id="inquiry-form" data-input-panel="inquiry">
             <h3>問い合わせ入力</h3>
             <input type="hidden" name="inquiryId">
+            <div class="selected-week-field">
+              <span>対象週</span>
+              <strong data-selected-week-label>-</strong>
+              <input type="hidden" name="weekStart">
+              <input type="hidden" name="weekEnd">
+            </div>
             <div class="grid-2">
-              <label>週開始日<input type="date" name="weekStart" required></label>
-              <label>週終了日<input type="date" name="weekEnd" required></label>
               <label>投稿日<input type="date" name="date" required></label>
               <label>SNS種別<select name="sns" required></select></label>
               <label>区分<select name="type" required></select></label>
@@ -2008,9 +2070,13 @@ tbody tr:nth-child(even) td {
           <form class="panel stack input-form-panel" id="lstep-form" data-input-panel="lstep">
             <h3>Lステップ管理</h3>
             <input type="hidden" name="lstepId">
+            <div class="selected-week-field">
+              <span>対象週</span>
+              <strong data-selected-week-label>-</strong>
+              <input type="hidden" name="weekStart">
+              <input type="hidden" name="weekEnd">
+            </div>
             <div class="grid-2">
-              <label>週開始日<input type="date" name="weekStart" required></label>
-              <label>週終了日<input type="date" name="weekEnd" required></label>
               <label>投稿日<input type="date" name="checkDate" required></label>
               <label>無料枠<input type="number" name="limit" min="0" value="200"></label>
               <label>入力者<input type="text" name="operator" required></label>
@@ -2059,8 +2125,9 @@ tbody tr:nth-child(even) td {
           <div class="record-week-controls">
             <button class="btn" type="button" id="record-prev-week">前週</button>
             <button class="btn" type="button" id="record-next-week">翌週</button>
-            <label>週開始日<input type="date" id="record-week-start"></label>
-            <label>週終了日<input type="date" id="record-week-end"></label>
+            <label class="week-select-label">週ブロック<select id="record-week-select" aria-label="入力済み一覧の対象週"></select></label>
+            <input type="hidden" id="record-week-start">
+            <input type="hidden" id="record-week-end">
             <button class="btn" type="button" id="clear-record-filters">全て表示</button>
           </div>
           <div class="record-search-row">
@@ -2204,7 +2271,8 @@ tbody tr:nth-child(even) td {
       <div class="modal-controls">
         <button class="btn" type="button" id="modal-prev-week">前週</button>
         <button class="btn" type="button" id="modal-next-week">翌週</button>
-        <label>週開始日<input type="date" id="modal-week-start"></label>
+        <label class="week-select-label">週ブロック<select id="modal-week-select" aria-label="問い合わせ詳細の対象週"></select></label>
+        <input type="hidden" id="modal-week-start">
       </div>
       <div id="inquiry-modal-body"></div>
     </div>
@@ -2237,11 +2305,9 @@ tbody tr:nth-child(even) td {
 
     function thisWeekRange() {
       const now = new Date();
-      const day = now.getDay();
-      const mondayOffset = day === 0 ? -6 : 1 - day;
-      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + mondayOffset);
-      const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
-      return { start: iso(monday), end: iso(sunday) };
+      const sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+      const saturday = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6);
+      return { start: iso(sunday), end: iso(saturday) };
     }
 
     function dateLabel(value) {
@@ -2268,10 +2334,35 @@ tbody tr:nth-child(even) td {
     function weekStartIso(value) {
       const d = new Date(`${value}T00:00:00`);
       if (Number.isNaN(d.getTime())) return value || "";
-      const day = d.getDay();
-      const mondayOffset = day === 0 ? -6 : 1 - day;
-      d.setDate(d.getDate() + mondayOffset);
+      d.setDate(d.getDate() - d.getDay());
       return iso(d);
+    }
+
+    function weekRangeFromStart(value) {
+      const start = weekStartIso(value || todayIso());
+      return { start, end: addDays(start, 6) };
+    }
+
+    function weekBlockLabel(start, end = addDays(start, 6)) {
+      return `${dateLabelWithYear(start)}〜${dateLabel(end)}（日〜土）`;
+    }
+
+    function weekBlockOptions(selectedStart) {
+      const center = weekRangeFromStart(selectedStart || todayIso()).start;
+      return Array.from({ length: 41 }, (_, index) => {
+        const start = addDays(center, (index - 20) * 7);
+        const end = addDays(start, 6);
+        return { start, end, label: weekBlockLabel(start, end) };
+      });
+    }
+
+    function fillWeekSelect(select, selectedStart) {
+      if (!select) return;
+      const start = weekRangeFromStart(selectedStart || todayIso()).start;
+      select.innerHTML = weekBlockOptions(start)
+        .map(option => `<option value="${escapeHtml(option.start)}">${escapeHtml(option.label)}</option>`)
+        .join("");
+      select.value = start;
     }
 
     function fullDateTime(value) {
@@ -2415,14 +2506,22 @@ tbody tr:nth-child(even) td {
       };
     }
 
+    function normalizeWeeklyRecord(item = {}, dateKey = "date") {
+      const record = { ...item };
+      const range = weekRangeFromStart(record[dateKey] || record.weekStart || todayIso());
+      record.weekStart = range.start;
+      record.weekEnd = range.end;
+      return record;
+    }
+
     function normalizeData(parsed = {}) {
       return {
         accounts: parsed.accounts?.length ? parsed.accounts : defaultAccounts(),
-        posts: parsed.posts || [],
+        posts: (parsed.posts || []).map(item => normalizeWeeklyRecord(item, "date")),
         workMetrics: parsed.workMetrics || [],
         followers: parsed.followers || [],
-        inquiries: parsed.inquiries || [],
-        lsteps: parsed.lsteps || [],
+        inquiries: (parsed.inquiries || []).map(item => normalizeWeeklyRecord(item, "date")),
+        lsteps: (parsed.lsteps || []).map(item => normalizeWeeklyRecord(item, "checkDate")),
         monitoring: parsed.monitoring || [],
         agencyNotices: parsed.agencyNotices || [],
         history: parsed.history || []
@@ -2432,7 +2531,7 @@ tbody tr:nth-child(even) td {
     function loadData() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) {
-        const data = sampleData();
+        const data = normalizeData(sampleData());
         data.history = [];
         saveData(data);
         return data;
@@ -2440,14 +2539,15 @@ tbody tr:nth-child(even) td {
       try {
         const loaded = normalizeData(JSON.parse(raw));
         if (!loaded.posts.length && !loaded.workMetrics.length && !loaded.followers.length && !loaded.inquiries.length && !loaded.lsteps.length) {
-          const data = sampleData();
+          const data = normalizeData(sampleData());
           data.history = loaded.history || [];
           saveData(data);
           return data;
         }
+        saveData(loaded);
         return loaded;
       } catch {
-        const data = sampleData();
+        const data = normalizeData(sampleData());
         data.history = [];
         saveData(data);
         return data;
@@ -2510,26 +2610,17 @@ tbody tr:nth-child(even) td {
 
     function currentWeekDefaults() {
       const fallback = thisWeekRange();
-      return {
-        start: $("#week-start").value || fallback.start,
-        end: $("#week-end").value || fallback.end
-      };
+      return weekRangeFromStart($("#week-start").value || fallback.start);
     }
 
     function formWeekDefaults(form) {
       const fallback = currentWeekDefaults();
-      return {
-        start: form.querySelector("[name='weekStart']")?.value || fallback.start,
-        end: form.querySelector("[name='weekEnd']")?.value || fallback.end
-      };
+      return weekRangeFromStart(form.querySelector("[name='weekStart']")?.value || fallback.start);
     }
 
     function recordWeekDefaults() {
       const fallback = thisWeekRange();
-      return {
-        start: $("#record-week-start").value || $("#week-start").value || fallback.start,
-        end: $("#record-week-end").value || $("#week-end").value || fallback.end
-      };
+      return weekRangeFromStart($("#record-week-start").value || $("#week-start").value || fallback.start);
     }
 
     function isRecordAllMode() {
@@ -3134,14 +3225,18 @@ tbody tr:nth-child(even) td {
       const fields = form.elements;
       clearOtherEditModes("post");
       activatePostInputPanel();
+      const editWeek = weekRangeFromStart(post.date || post.weekStart || $("#week-start").value || thisWeekRange().start);
+      setMainWeek(editWeek.start);
+      setRecordWeek(editWeek.start);
       fields.postId.value = post.id;
-      fields.weekStart.value = post.weekStart || $("#week-start").value || thisWeekRange().start;
-      fields.weekEnd.value = post.weekEnd || addDays(fields.weekStart.value, 6);
+      fields.weekStart.value = editWeek.start;
+      fields.weekEnd.value = editWeek.end;
       fields.date.value = post.date || todayIso();
       fields.sns.value = post.sns || "X";
       fields.impressions.value = Number(post.impressions || 0);
       fields.content.value = post.content || "";
       fields.operator.value = post.operator || "";
+      updateFormWeekLabel(form);
       setPostFormMode("edit");
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -3195,22 +3290,30 @@ tbody tr:nth-child(even) td {
         });
       }
       if (type === "inquiry") {
-        form.elements.weekStart.value = item.weekStart || $("#week-start").value || thisWeekRange().start;
-        form.elements.weekEnd.value = item.weekEnd || addDays(form.elements.weekStart.value, 6);
+        const editWeek = weekRangeFromStart(item.date || item.weekStart || $("#week-start").value || thisWeekRange().start);
+        setMainWeek(editWeek.start);
+        setRecordWeek(editWeek.start);
+        form.elements.weekStart.value = editWeek.start;
+        form.elements.weekEnd.value = editWeek.end;
         form.elements.date.value = item.date || todayIso();
         form.elements.sns.value = item.sns || "X";
         form.elements.type.value = item.type || inquiryTypes[0];
         form.elements.status.value = item.status || inquiryStatuses[0];
         form.elements.operator.value = item.operator || "";
         form.elements.content.value = item.content || "";
+        updateFormWeekLabel(form);
       }
       if (type === "lstep") {
-        form.elements.weekStart.value = item.weekStart || $("#week-start").value || thisWeekRange().start;
-        form.elements.weekEnd.value = item.weekEnd || addDays(form.elements.weekStart.value, 6);
+        const editWeek = weekRangeFromStart(item.checkDate || item.weekStart || $("#week-start").value || thisWeekRange().start);
+        setMainWeek(editWeek.start);
+        setRecordWeek(editWeek.start);
+        form.elements.weekStart.value = editWeek.start;
+        form.elements.weekEnd.value = editWeek.end;
         form.elements.checkDate.value = item.checkDate || todayIso();
         form.elements.limit.value = Number(item.limit || 200);
         form.elements.current.value = Number(item.current || 0);
         form.elements.operator.value = item.operator || "";
+        updateFormWeekLabel(form);
       }
       setRecordFormMode(type, "edit");
       form.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -3319,7 +3422,7 @@ tbody tr:nth-child(even) td {
     }
 
     function openInquiryDetail() {
-      $("#modal-week-start").value = $("#week-start").value;
+      setModalWeek($("#week-start").value);
       renderInquiryDetail();
       $("#inquiry-modal").classList.add("active");
       $("#inquiry-modal").setAttribute("aria-hidden", "false");
@@ -3327,8 +3430,7 @@ tbody tr:nth-child(even) td {
 
     function renderInquiryDetail() {
       const business = $("#report-business").value;
-      const start = $("#modal-week-start").value || $("#week-start").value;
-      const end = addDays(start, 6);
+      const { start, end } = weekRangeFromStart($("#modal-week-start").value || $("#week-start").value);
       const inquiries = data.inquiries.filter(item =>
         item.business === business &&
         item.weekStart === start &&
@@ -3342,8 +3444,8 @@ tbody tr:nth-child(even) td {
     }
 
     function moveModalWeek(days) {
-      const start = $("#modal-week-start").value || $("#week-start").value;
-      $("#modal-week-start").value = addDays(start, days);
+      const { start } = weekRangeFromStart($("#modal-week-start").value || $("#week-start").value);
+      setModalWeek(addDays(start, days));
       renderInquiryDetail();
     }
 
@@ -3586,10 +3688,8 @@ tbody tr:nth-child(even) td {
     function setupForms() {
       setOptions($("#report-business"), businesses, businesses[0]);
       const currentWeek = thisWeekRange();
-      if (!$("#week-start").value) $("#week-start").value = currentWeek.start;
-      if (!$("#week-end").value) $("#week-end").value = currentWeek.end;
-      if (!$("#record-week-start").value) $("#record-week-start").value = $("#week-start").value;
-      if (!$("#record-week-end").value) $("#record-week-end").value = $("#week-end").value;
+      setMainWeek($("#week-start").value || currentWeek.start);
+      setRecordWeek($("#record-week-start").value || $("#week-start").value || currentWeek.start);
       if ($("#monitoring-month") && !$("#monitoring-month").value) $("#monitoring-month").value = currentMonthIso();
       const summaryBounds = summaryDateBounds();
       if (!$("#summary-start").value) $("#summary-start").value = summaryBounds.start;
@@ -3601,8 +3701,8 @@ tbody tr:nth-child(even) td {
       $$("select[name='status']").forEach(select => setOptions(select, inquiryStatuses));
       $$("select[name='account']").forEach(select => setOptions(select, data.accounts.map(a => a.name)));
       renderFollowerBulkInputs();
-      syncInputWeeks();
       $$("input[name='date'], input[name='checkDate']").forEach(input => input.value = todayIso());
+      syncInputWeeks();
     }
 
     function renderFollowerBulkInputs() {
@@ -3617,36 +3717,63 @@ tbody tr:nth-child(even) td {
     }
 
     function syncInputWeeks() {
-      const start = $("#week-start").value || "2026-05-25";
-      const end = $("#week-end").value || addDays(start, 6);
+      const { start, end } = currentWeekDefaults();
       $$("input[name='weekStart']").forEach(input => input.value = start);
       $$("input[name='weekEnd']").forEach(input => input.value = end);
+      $$("[data-selected-week-label]").forEach(label => {
+        label.textContent = weekBlockLabel(start, end);
+      });
+      $$("input[name='date'], input[name='checkDate']").forEach(input => {
+        input.min = start;
+        input.max = end;
+        if (input.value && (input.value < start || input.value > end)) input.value = start;
+      });
     }
 
-    function syncFormWeekEnd(input) {
-      const form = input.closest("form");
-      const end = form?.querySelector("[name='weekEnd']");
-      if (end && input.value) end.value = addDays(input.value, 6);
+    function updateFormWeekLabel(form) {
+      const start = form?.querySelector("[name='weekStart']")?.value;
+      const end = form?.querySelector("[name='weekEnd']")?.value || addDays(start, 6);
+      const label = form?.querySelector("[data-selected-week-label]");
+      if (label && start) label.textContent = weekBlockLabel(start, end);
+    }
+
+    function setMainWeek(value) {
+      const { start, end } = weekRangeFromStart(value);
+      $("#week-start").value = start;
+      $("#week-end").value = end;
+      fillWeekSelect($("#week-select"), start);
+      fillWeekSelect($("#input-week-select"), start);
+      $("#week-range-label").textContent = weekBlockLabel(start, end);
+      $("#input-week-range-label").textContent = weekBlockLabel(start, end);
+      syncInputWeeks();
+    }
+
+    function setRecordWeek(value) {
+      const { start, end } = weekRangeFromStart(value);
+      $("#record-week-start").value = start;
+      $("#record-week-end").value = end;
+      fillWeekSelect($("#record-week-select"), start);
+    }
+
+    function setModalWeek(value) {
+      const { start } = weekRangeFromStart(value);
+      $("#modal-week-start").value = start;
+      fillWeekSelect($("#modal-week-select"), start);
     }
 
     function moveWeek(days) {
       recordAllMode = false;
-      const start = $("#week-start").value || "2026-05-25";
-      const end = $("#week-end").value || addDays(start, 6);
-      $("#week-start").value = addDays(start, days);
-      $("#week-end").value = addDays(end, days);
-      $("#record-week-start").value = $("#week-start").value;
-      $("#record-week-end").value = $("#week-end").value;
-      syncInputWeeks();
+      const { start } = currentWeekDefaults();
+      const nextStart = addDays(start, days);
+      setMainWeek(nextStart);
+      setRecordWeek(nextStart);
       renderAll();
     }
 
     function moveRecordWeek(days) {
       recordAllMode = false;
-      const start = $("#record-week-start").value || $("#week-start").value || "2026-05-25";
-      const end = $("#record-week-end").value || addDays(start, 6);
-      $("#record-week-start").value = addDays(start, days);
-      $("#record-week-end").value = addDays(end, days);
+      const { start } = recordWeekDefaults();
+      setRecordWeek(addDays(start, days));
       renderRecords();
     }
 
@@ -4090,22 +4217,22 @@ tbody tr:nth-child(even) td {
     $("#restore-backup").addEventListener("change", event => restoreBackupFile(event.target.files?.[0]));
 
     $("#report-business").addEventListener("change", renderAll);
-    $("#week-start").addEventListener("change", () => {
+    $("#week-select").addEventListener("change", () => {
       recordAllMode = false;
-      $("#week-end").value = addDays($("#week-start").value, 6);
-      syncInputWeeks();
+      setMainWeek($("#week-select").value);
+      setRecordWeek($("#week-select").value);
       renderAll();
     });
-    $("#week-end").addEventListener("change", () => {
+    $("#input-week-select").addEventListener("change", () => {
       recordAllMode = false;
-      syncInputWeeks();
+      setMainWeek($("#input-week-select").value);
+      setRecordWeek($("#input-week-select").value);
       renderAll();
-    });
-    $$("input[name='weekStart']").forEach(input => {
-      input.addEventListener("change", () => syncFormWeekEnd(input));
     });
     $("#prev-week").addEventListener("click", () => moveWeek(-7));
     $("#next-week").addEventListener("click", () => moveWeek(7));
+    $("#input-prev-week").addEventListener("click", () => moveWeek(-7));
+    $("#input-next-week").addEventListener("click", () => moveWeek(7));
     $("#show-impression-breakdown").addEventListener("click", event => {
       event.preventDefault();
       showSummaryBreakdown();
@@ -4141,7 +4268,10 @@ tbody tr:nth-child(even) td {
     $("#inquiry-detail-button-bottom").addEventListener("click", openInquiryDetail);
     $("#modal-prev-week").addEventListener("click", () => moveModalWeek(-7));
     $("#modal-next-week").addEventListener("click", () => moveModalWeek(7));
-    $("#modal-week-start").addEventListener("change", renderInquiryDetail);
+    $("#modal-week-select").addEventListener("change", () => {
+      setModalWeek($("#modal-week-select").value);
+      renderInquiryDetail();
+    });
 
     $$(".tab").forEach(button => {
       button.addEventListener("click", () => {
@@ -4172,13 +4302,9 @@ tbody tr:nth-child(even) td {
     $("#clear-record-filters").addEventListener("click", showAllRecords);
     $("#record-prev-week").addEventListener("click", () => moveRecordWeek(-7));
     $("#record-next-week").addEventListener("click", () => moveRecordWeek(7));
-    $("#record-week-start").addEventListener("change", () => {
+    $("#record-week-select").addEventListener("change", () => {
       recordAllMode = false;
-      $("#record-week-end").value = addDays($("#record-week-start").value, 6);
-      renderRecords();
-    });
-    $("#record-week-end").addEventListener("change", () => {
-      recordAllMode = false;
+      setRecordWeek($("#record-week-select").value);
       renderRecords();
     });
 
