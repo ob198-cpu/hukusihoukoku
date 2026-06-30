@@ -1109,9 +1109,19 @@ tbody tr:nth-child(even) td {
 }
 
 .input-layout {
-  display: grid;
-  grid-template-columns: minmax(450px, 0.8fr) minmax(0, 1.2fr);
-  gap: 24px;
+  display: block;
+}
+
+.input-mode-tabs {
+  margin-bottom: 16px;
+}
+
+.input-mode-panel {
+  display: none;
+}
+
+.input-mode-panel.active {
+  display: block;
 }
 
 .input-tabs {
@@ -1960,8 +1970,13 @@ tbody tr:nth-child(even) td {
         <div class="week-range-card"><span>選択中の週</span><strong id="input-week-range-label">-</strong></div>
       </div>
 
+      <div class="input-tabs input-mode-tabs" aria-label="入力シート画面切替">
+        <button class="input-tab active" type="button" data-input-mode-tab="entry">入力画面</button>
+        <button class="input-tab" type="button" data-input-mode-tab="edit">編集画面</button>
+      </div>
+
       <div class="input-layout">
-        <div>
+        <div class="input-mode-panel active" data-input-mode-panel="entry">
           <div class="input-tabs">
             <button class="input-tab active" type="button" data-input-tab="post">投稿入力</button>
             <button class="input-tab" type="button" data-input-tab="work">作品別推移</button>
@@ -2094,7 +2109,7 @@ tbody tr:nth-child(even) td {
           </form>
         </div>
 
-        <div class="panel record-list">
+        <div class="panel record-list input-mode-panel" data-input-mode-panel="edit">
           <div class="record-manager-head">
             <div>
               <p class="section-kicker">データ管理</p>
@@ -3193,6 +3208,12 @@ tbody tr:nth-child(even) td {
       activateInputPanel("post");
     }
 
+    function setInputMode(mode) {
+      $$('[data-input-mode-tab]').forEach(tab => tab.classList.toggle('active', tab.dataset.inputModeTab === mode));
+      $$('[data-input-mode-panel]').forEach(panel => panel.classList.toggle('active', panel.dataset.inputModePanel === mode));
+      if (mode === "edit") renderRecords();
+    }
+
     const editButtonLabels = {
       post: ["投稿を登録", "投稿を更新"],
       work: ["作品別推移を登録", "作品別推移を更新"],
@@ -3229,6 +3250,7 @@ tbody tr:nth-child(even) td {
       const form = $("#post-form");
       const fields = form.elements;
       clearOtherEditModes("post");
+      setInputMode("entry");
       activatePostInputPanel();
       const editWeek = weekRangeFromStart(post.date || post.weekStart || $("#week-start").value || thisWeekRange().start);
       setMainWeek(editWeek.start);
@@ -3277,6 +3299,7 @@ tbody tr:nth-child(even) td {
       const form = $(`#${type}-form`);
       if (!form) return;
       clearOtherEditModes(type);
+      setInputMode("entry");
       activateInputPanel(type);
       form.elements[`${type}Id`].value = item.id;
       if (type === "work") {
@@ -4298,6 +4321,10 @@ tbody tr:nth-child(even) td {
         $(`#view-${button.dataset.view}`).classList.add("active");
         renderAll();
       });
+    });
+
+    $$('[data-input-mode-tab]').forEach(button => {
+      button.addEventListener('click', () => setInputMode(button.dataset.inputModeTab));
     });
 
     $$("[data-input-tab]").forEach(button => {
