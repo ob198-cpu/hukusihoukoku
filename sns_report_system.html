@@ -1469,7 +1469,7 @@ tbody tr:nth-child(even) td {
 .work-input-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 620px;
+  min-width: 1380px;
 }
 
 .work-input-table th,
@@ -1493,6 +1493,14 @@ tbody tr:nth-child(even) td {
 .work-input-table select,
 .work-input-table input {
   width: 100%;
+}
+
+.work-input-table input[type="number"] {
+  min-width: 86px;
+}
+
+.work-input-table input[type="date"] {
+  min-width: 132px;
 }
 
 .work-input-table-wrap + #add-work-row {
@@ -2097,8 +2105,20 @@ tbody tr:nth-child(even) td {
             </div>
             <div class="grid-2">
               <label>投稿日<input type="date" name="date" required></label>
-              <label>SNS種別<select name="sns" required></select></label>
+              <label>投稿時間<input type="time" name="postTime"></label>
               <label>インプレッション/再生数<input type="number" name="impressions" min="0" value="0"></label>
+              <label>投稿種別<select name="postType">
+                <option value="動画">動画</option>
+                <option value="画像">画像</option>
+                <option value="テキスト">テキスト</option>
+              </select></label>
+              <label>いいね<input type="number" name="likes" min="0" value="0"></label>
+              <label>コメント/リプライ<input type="number" name="comments" min="0" value="0"></label>
+              <label>シェア/リポスト<input type="number" name="shares" min="0" value="0"></label>
+              <label>保存数<input type="number" name="saves" min="0" value="0"></label>
+              <label>プロフィールアクセス数<input type="number" name="profileAccesses" min="0" value="0"></label>
+              <label>リンククリック数<input type="number" name="linkClicks" min="0" value="0"></label>
+              <label>SNS種別<select name="sns" required></select></label>
             </div>
             <label>投稿内容<textarea name="content" required></textarea></label>
             <div class="grid-2">
@@ -2116,13 +2136,30 @@ tbody tr:nth-child(even) td {
             <div class="grid-2">
               <label>確認日<input type="date" name="date" required></label>
               <label>入力者<input type="text" name="operator" required></label>
+              <label>SNS種別で表示<select name="workSnsFilter">
+                <option value="">全SNS</option>
+              </select></label>
+              <label>月別で表示<input type="month" name="workMonthFilter"></label>
             </div>
             <fieldset class="field-group">
-              <legend>作品ごとのインプレッション/再生数</legend>
+              <legend>作品ごとの実績</legend>
               <div class="work-input-table-wrap">
                 <table class="work-input-table">
                   <thead>
-                    <tr><th>作品</th><th>インプレッション/再生数</th><th>操作</th></tr>
+                    <tr>
+                      <th>SNS種別</th>
+                      <th>作品/投稿内容</th>
+                      <th>投稿日</th>
+                      <th>インプレッション/再生数</th>
+                      <th>いいね</th>
+                      <th>コメント/リプライ</th>
+                      <th>シェア/リポスト</th>
+                      <th>保存数</th>
+                      <th>プロフィールアクセス</th>
+                      <th>リンククリック</th>
+                      <th>最終ステータス</th>
+                      <th>操作</th>
+                    </tr>
                   </thead>
                   <tbody id="work-metric-body"></tbody>
                 </table>
@@ -2392,6 +2429,16 @@ tbody tr:nth-child(even) td {
     const businesses = ["自事業所"];
     const monitoringUsers = ["大場", "A", "B", "C", "D", "E", "F"];
     const snsTypes = ["X", "Instagram", "TikTok", "Threads", "YouTube"];
+    const postTypes = ["動画", "画像", "テキスト"];
+    const engagementFields = ["likes", "comments", "shares", "saves", "profileAccesses", "linkClicks"];
+    const engagementLabels = {
+      likes: "いいね",
+      comments: "コメント/リプライ",
+      shares: "シェア/リポスト",
+      saves: "保存数",
+      profileAccesses: "プロフィールアクセス数",
+      linkClicks: "リンククリック数"
+    };
     const inquiryTypes = ["利用者問い合わせ", "職員問い合わせ", "その他"];
     const inquiryStatuses = ["未対応", "対応中", "対応済", "保留"];
     const SUMMARY_ROW_LIMIT = 120;
@@ -2510,6 +2557,14 @@ tbody tr:nth-child(even) td {
           posts.push({
             id: uid(), weekStart, weekEnd, date: iso(new Date(2026, 4, 25 + i)), business,
             account: `${business}_X`, sns: "X", content, impressions: 900 + bIndex * 80 + i * 45,
+            postTime: `${String(9 + i).padStart(2, "0")}:00`,
+            postType: i % 2 === 0 ? "画像" : "テキスト",
+            likes: 18 + i * 3,
+            comments: 2 + i,
+            shares: 1 + i,
+            saves: 4 + i,
+            profileAccesses: 28 + i * 4,
+            linkClicks: 7 + i,
             followers: businessFollowers, operator: "入力者サンプル",
             inputAt: new Date(2026, 4, 31, 10, 30 + i).toISOString(), note: "Xは週5投稿想定"
           });
@@ -2523,6 +2578,14 @@ tbody tr:nth-child(even) td {
           posts.push({
             id: uid(), weekStart, weekEnd, date: iso(new Date(2026, 4, 25 + i)), business,
             account: `${business}_${sns}`, sns, content, impressions: impressions + bIndex * 35,
+            postTime: `${String(10 + i).padStart(2, "0")}:30`,
+            postType: sns === "YouTube" || sns === "TikTok" ? "動画" : "画像",
+            likes: 12 + i * 4,
+            comments: 1 + i,
+            shares: 1 + i,
+            saves: 3 + i,
+            profileAccesses: 22 + i * 5,
+            linkClicks: 6 + i,
             followers: businessFollowers, operator: "入力者サンプル",
             inputAt: new Date(2026, 4, 31, 10, 40 + i).toISOString(), note: "週1投稿想定"
           });
@@ -2531,6 +2594,14 @@ tbody tr:nth-child(even) td {
           posts.push({
             id: uid(), weekStart: testWeekStart, weekEnd: testWeekEnd, date: iso(new Date(2026, 5, 8 + i)), business,
             account: `${business}_X`, sns: "X", content, impressions: 1120 + i * 80,
+            postTime: `${String(9 + i).padStart(2, "0")}:15`,
+            postType: i % 2 === 0 ? "動画" : "画像",
+            likes: 22 + i * 3,
+            comments: 3 + i,
+            shares: 2 + i,
+            saves: 5 + i,
+            profileAccesses: 34 + i * 4,
+            linkClicks: 8 + i,
             followers: 3440, operator: "入力者サンプル",
             inputAt: new Date(2026, 5, 14, 10, 10 + i).toISOString(), note: "テスト用X投稿"
           });
@@ -2544,6 +2615,14 @@ tbody tr:nth-child(even) td {
           posts.push({
             id: uid(), weekStart: testWeekStart, weekEnd: testWeekEnd, date: iso(new Date(2026, 5, 9 + i)), business,
             account: `${business}_${sns}`, sns, content, impressions,
+            postTime: `${String(11 + i).padStart(2, "0")}:00`,
+            postType: sns === "YouTube" || sns === "TikTok" ? "動画" : "テキスト",
+            likes: 16 + i * 3,
+            comments: 2 + i,
+            shares: 1 + i,
+            saves: 4 + i,
+            profileAccesses: 24 + i * 4,
+            linkClicks: 6 + i,
             followers: 3440, operator: "入力者サンプル",
             inputAt: new Date(2026, 5, 14, 10, 30 + i).toISOString(), note: "テスト用SNS投稿"
           });
@@ -2555,10 +2634,10 @@ tbody tr:nth-child(even) td {
         posts,
         workMetrics: [
           ...["投稿1", "投稿2", "投稿3", "投稿4"].flatMap((workName, index) => [
-            { id: uid(), date: "2026-06-03", workName, impressions: [100, 120, 90, 80][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, index).toISOString() },
-            { id: uid(), date: "2026-06-08", workName, impressions: [160, 180, 140, 130][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 8, 10, index).toISOString() },
-            { id: uid(), date: "2026-06-10", workName, impressions: [200, 230, 210, 190][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, index).toISOString() },
-            { id: uid(), date: "2026-06-12", workName, impressions: [300, 280, 260, 240][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 12, 10, index).toISOString() }
+            { id: uid(), date: "2026-06-03", sns: ["X", "Instagram", "TikTok", "Threads"][index], workName, content: workName, impressions: [100, 120, 90, 80][index], likes: [10, 12, 9, 8][index], comments: [2, 3, 1, 1][index], shares: [1, 2, 1, 1][index], saves: [4, 5, 3, 2][index], profileAccesses: [20, 22, 18, 16][index], linkClicks: [5, 6, 4, 3][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 3, 10, index).toISOString() },
+            { id: uid(), date: "2026-06-08", sns: ["X", "Instagram", "TikTok", "Threads"][index], workName, content: workName, impressions: [160, 180, 140, 130][index], likes: [16, 18, 14, 13][index], comments: [3, 4, 2, 2][index], shares: [2, 3, 2, 2][index], saves: [6, 7, 5, 4][index], profileAccesses: [30, 34, 28, 26][index], linkClicks: [8, 9, 7, 6][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 8, 10, index).toISOString() },
+            { id: uid(), date: "2026-06-10", sns: ["X", "Instagram", "TikTok", "Threads"][index], workName, content: workName, impressions: [200, 230, 210, 190][index], likes: [20, 23, 21, 19][index], comments: [4, 5, 4, 3][index], shares: [3, 4, 3, 3][index], saves: [8, 9, 8, 7][index], profileAccesses: [38, 42, 40, 36][index], linkClicks: [10, 12, 11, 9][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 10, 10, index).toISOString() },
+            { id: uid(), date: "2026-06-12", sns: ["X", "Instagram", "TikTok", "Threads"][index], workName, content: workName, impressions: [300, 280, 260, 240][index], likes: [30, 28, 26, 24][index], comments: [6, 6, 5, 5][index], shares: [5, 4, 4, 4][index], saves: [11, 10, 10, 9][index], profileAccesses: [55, 52, 48, 46][index], linkClicks: [16, 15, 14, 13][index], operator: "入力者サンプル", inputAt: new Date(2026, 5, 12, 10, index).toISOString() }
           ])
         ],
         followers: [
@@ -2625,11 +2704,35 @@ tbody tr:nth-child(even) td {
       return record;
     }
 
+    function normalizeEngagementFields(record = {}) {
+      engagementFields.forEach(field => {
+        record[field] = Number(record[field] || 0);
+      });
+      return record;
+    }
+
+    function normalizePostRecord(item = {}) {
+      const record = normalizeWeeklyRecord(item, "date");
+      record.postTime = record.postTime || "";
+      record.postType = postTypes.includes(record.postType) ? record.postType : "動画";
+      return normalizeEngagementFields(record);
+    }
+
+    function normalizeWorkMetricRecord(item = {}) {
+      const record = { ...item };
+      record.date = record.date || todayIso();
+      record.sns = record.sns || "";
+      record.content = record.content || record.workName || "";
+      record.workName = record.workName || record.content || "";
+      record.impressions = Number(record.impressions || 0);
+      return normalizeEngagementFields(record);
+    }
+
     function normalizeData(parsed = {}) {
       return {
         accounts: parsed.accounts?.length ? parsed.accounts : defaultAccounts(),
-        posts: (parsed.posts || []).map(item => normalizeWeeklyRecord(item, "date")),
-        workMetrics: parsed.workMetrics || [],
+        posts: (parsed.posts || []).map(normalizePostRecord),
+        workMetrics: (parsed.workMetrics || []).map(normalizeWorkMetricRecord),
         followers: parsed.followers || [],
         inquiries: (parsed.inquiries || []).map(item => normalizeWeeklyRecord(item, "date")),
         lsteps: (parsed.lsteps || []).map(item => normalizeWeeklyRecord(item, "checkDate")),
@@ -3126,7 +3229,49 @@ tbody tr:nth-child(even) td {
       });
       const totalRow = ["合計", ...periodKeys.map(key => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${key}`) || 0), 0).toLocaleString())];
       totalRow.push(rows.reduce((sum, row) => sum + Number(row.impressions || 0), 0).toLocaleString());
-      return workMetricChartHtml(periods, works, valueMap) + tableHtml(headers, [...bodyRows, totalRow]);
+      return workMetricChartHtml(periods, works, valueMap) + tableHtml(headers, [...bodyRows, totalRow]) + workMetricEngagementSummaryHtml(rows);
+    }
+
+    function workMetricEngagementSummaryHtml(rows) {
+      const grouped = new Map();
+      rows.forEach(row => {
+        const key = `${row.sns || "-"}__${row.workName || row.content || "-"}`;
+        if (!grouped.has(key)) {
+          grouped.set(key, {
+            sns: row.sns || "-",
+            workName: row.workName || row.content || "-",
+            impressions: 0,
+            likes: 0,
+            comments: 0,
+            shares: 0,
+            saves: 0,
+            profileAccesses: 0,
+            linkClicks: 0
+          });
+        }
+        const target = grouped.get(key);
+        target.impressions += Number(row.impressions || 0);
+        engagementFields.forEach(field => {
+          target[field] += Number(row[field] || 0);
+        });
+      });
+      const detailRows = Array.from(grouped.values())
+        .sort((a, b) => a.sns.localeCompare(b.sns, "ja") || a.workName.localeCompare(b.workName, "ja", { numeric: true }))
+        .map(row => [
+          row.sns,
+          row.workName,
+          row.impressions.toLocaleString(),
+          row.likes.toLocaleString(),
+          row.comments.toLocaleString(),
+          row.shares.toLocaleString(),
+          row.saves.toLocaleString(),
+          row.profileAccesses.toLocaleString(),
+          row.linkClicks.toLocaleString()
+        ]);
+      return `<h4 class="summary-section-title">作品別反応数</h4>` + tableHtml(
+        ["SNS", "作品/投稿内容", "Imp/再生", "いいね", "コメント", "シェア", "保存", "プロフィール", "リンク"],
+        detailRows
+      );
     }
 
     function workMetricChartHtml(periods, works, valueMap) {
@@ -3186,7 +3331,7 @@ tbody tr:nth-child(even) td {
     }
 
     function postSortValue(post, key) {
-      if (key === "impressions") return Number(post.impressions || 0);
+      if (["impressions", ...engagementFields].includes(key)) return Number(post[key] || 0);
       if (key === "inputAt") return post.inputAt || "";
       return post[key] || "";
     }
@@ -3194,9 +3339,17 @@ tbody tr:nth-child(even) td {
     function postTableHtml(posts) {
       const columns = [
         ["date", "投稿日"],
+        ["postTime", "投稿時間"],
         ["sns", "SNS"],
+        ["postType", "投稿種別"],
         ["content", "内容"],
         ["impressions", "Imp"],
+        ["likes", "いいね"],
+        ["comments", "コメント"],
+        ["shares", "シェア"],
+        ["saves", "保存"],
+        ["profileAccesses", "プロフィール"],
+        ["linkClicks", "リンク"],
         ["operator", "入力者"],
         ["inputAt", "入力時間"]
       ];
@@ -3205,13 +3358,21 @@ tbody tr:nth-child(even) td {
       `).join("")}<th>操作</th></tr></thead><tbody>
         ${posts.map(p => `<tr>
           <td>${dateLabel(p.date)}</td>
+          <td>${escapeHtml(p.postTime || "")}</td>
           <td>${escapeHtml(p.sns)}</td>
+          <td>${escapeHtml(p.postType || "")}</td>
           <td>${escapeHtml(p.content)}</td>
           <td>${Number(p.impressions || 0).toLocaleString()}</td>
+          <td>${Number(p.likes || 0).toLocaleString()}</td>
+          <td>${Number(p.comments || 0).toLocaleString()}</td>
+          <td>${Number(p.shares || 0).toLocaleString()}</td>
+          <td>${Number(p.saves || 0).toLocaleString()}</td>
+          <td>${Number(p.profileAccesses || 0).toLocaleString()}</td>
+          <td>${Number(p.linkClicks || 0).toLocaleString()}</td>
           <td>${escapeHtml(p.operator)}</td>
           <td>${escapeHtml(fullDateTime(p.inputAt))}</td>
           <td>${recordActionButtons("post", p.id)}</td>
-        </tr>`).join("") || `<tr><td colspan="7">データはありません。</td></tr>`}
+        </tr>`).join("") || `<tr><td colspan="15">データはありません。</td></tr>`}
       </tbody></table>`;
     }
 
@@ -3231,7 +3392,7 @@ tbody tr:nth-child(even) td {
 
     function recordSummary(type, item = {}) {
       if (type === "post") return `${item.sns || ""} / ${item.content || ""} / ${Number(item.impressions || 0).toLocaleString()}Imp`.trim();
-      if (type === "work") return `${item.workName || ""} / ${Number(item.impressions || 0).toLocaleString()}`.trim();
+      if (type === "work") return `${item.sns || ""} / ${item.workName || ""} / ${Number(item.impressions || 0).toLocaleString()}Imp`.trim();
       if (type === "follower") return `${item.business || ""} / ${Number(item.followers || 0).toLocaleString()}人`.trim();
       if (type === "inquiry") return `${item.sns || ""} / ${item.type || ""} / ${item.content || ""} / ${item.status || ""}`.trim();
       if (type === "lstep") {
@@ -3281,16 +3442,23 @@ tbody tr:nth-child(even) td {
     function workRecordsHtml(rows) {
       const detailRows = rows.slice().sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.inputAt || "").localeCompare(a.inputAt || ""));
       return workMetricTableHtml(rows) + `<h4 class="summary-section-title">入力明細</h4><table><thead><tr>
-        <th>確認日</th><th>作品名</th><th>数値</th><th>入力者</th><th>入力時間</th><th>操作</th>
+        <th>投稿日</th><th>SNS</th><th>作品/投稿内容</th><th>Imp/再生</th><th>いいね</th><th>コメント</th><th>シェア</th><th>保存</th><th>プロフィール</th><th>リンク</th><th>入力者</th><th>入力時間</th><th>操作</th>
       </tr></thead><tbody>
         ${detailRows.map(item => `<tr>
           <td>${dateLabel(item.date)}</td>
+          <td>${escapeHtml(item.sns || "")}</td>
           <td>${escapeHtml(item.workName)}</td>
           <td>${Number(item.impressions || 0).toLocaleString()}</td>
+          <td>${Number(item.likes || 0).toLocaleString()}</td>
+          <td>${Number(item.comments || 0).toLocaleString()}</td>
+          <td>${Number(item.shares || 0).toLocaleString()}</td>
+          <td>${Number(item.saves || 0).toLocaleString()}</td>
+          <td>${Number(item.profileAccesses || 0).toLocaleString()}</td>
+          <td>${Number(item.linkClicks || 0).toLocaleString()}</td>
           <td>${escapeHtml(item.operator)}</td>
           <td>${escapeHtml(fullDateTime(item.inputAt))}</td>
           <td>${recordActionButtons("work", item.id)}</td>
-        </tr>`).join("") || `<tr><td colspan="6">データはありません。</td></tr>`}
+        </tr>`).join("") || `<tr><td colspan="13">データはありません。</td></tr>`}
       </tbody></table>`;
     }
 
@@ -3434,7 +3602,12 @@ tbody tr:nth-child(even) td {
       fields.weekEnd.value = editWeek.end;
       fields.date.value = post.date || todayIso();
       fields.sns.value = post.sns || "X";
+      fields.postTime.value = post.postTime || "";
+      fields.postType.value = post.postType || "動画";
       fields.impressions.value = Number(post.impressions || 0);
+      engagementFields.forEach(field => {
+        if (fields[field]) fields[field].value = Number(post[field] || 0);
+      });
       fields.content.value = post.content || "";
       fields.operator.value = post.operator || "";
       updateFormWeekLabel(form);
@@ -3480,7 +3653,9 @@ tbody tr:nth-child(even) td {
       if (type === "work") {
         form.elements.date.value = item.date || todayIso();
         form.elements.operator.value = item.operator || "";
-        renderWorkMetricRows([{ workName: item.workName || "", impressions: Number(item.impressions || 0) }]);
+        form.elements.workSnsFilter.value = item.sns || "";
+        form.elements.workMonthFilter.value = (item.date || todayIso()).slice(0, 7);
+        renderWorkMetricRows([{ ...item }]);
       }
       if (type === "follower") {
         form.elements.date.value = item.date || todayIso();
@@ -3916,18 +4091,69 @@ tbody tr:nth-child(even) td {
       ).join("");
     }
 
+    function currentWorkMetricFilters() {
+      const form = $("#work-form");
+      const sns = form?.elements.workSnsFilter?.value || "";
+      const month = form?.elements.workMonthFilter?.value || (form?.elements.date?.value || todayIso()).slice(0, 7);
+      return { sns, month };
+    }
+
+    function latestWorkMetricMap(sns = "", month = "") {
+      const map = new Map();
+      data.workMetrics
+        .filter(item => (!sns || item.sns === sns) && (!month || String(item.date || "").startsWith(month)))
+        .sort((a, b) => `${a.date || ""}_${a.inputAt || ""}`.localeCompare(`${b.date || ""}_${b.inputAt || ""}`))
+        .forEach(item => {
+          const key = `${item.sns || ""}__${item.workName || item.content || ""}`;
+          map.set(key, item);
+        });
+      return map;
+    }
+
     function defaultWorkMetricEntries() {
-      return workMetricCandidates().map(workName => ({ workName, impressions: 0 }));
+      const { sns, month } = currentWorkMetricFilters();
+      const latestMap = latestWorkMetricMap(sns, month);
+      const formDate = $("#work-form")?.elements.date?.value || todayIso();
+      const fallbackDate = month && !formDate.startsWith(month) ? `${month}-01` : formDate;
+      return workMetricCandidates().slice(0, 12).map((workName, index) => {
+        const fallbackSns = sns || snsTypes[index % snsTypes.length];
+        const latest = latestMap.get(`${fallbackSns}__${workName}`) || latestMap.get(`__${workName}`);
+        return latest ? { ...latest } : {
+          sns: fallbackSns,
+          workName,
+          content: workName,
+          date: fallbackDate,
+          impressions: 0
+        };
+      });
+    }
+
+    function engagementInputsHtml(entry = {}) {
+      return engagementFields.map(field => {
+        const label = engagementLabels[field] || field;
+        return `<td><input type="number" min="0" name="${field}" value="${Number(entry[field] || 0)}" aria-label="${escapeHtml(label)}"></td>`;
+      }).join("");
     }
 
     function workMetricRowHtml(entry = {}) {
-      const workName = entry.workName || "";
+      const workName = entry.workName || entry.content || "";
       const impressions = Number(entry.impressions || 0);
+      const sns = entry.sns || currentWorkMetricFilters().sns || "X";
+      const date = entry.date || todayIso();
       return `
-        <tr>
+        <tr data-work-row data-work-id="${escapeHtml(entry.id || "")}">
+          <td><select name="workSns" aria-label="SNS種別">${snsTypes.concat("その他").map(value => `<option value="${escapeHtml(value)}" ${value === sns ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></td>
           <td><select name="workName" aria-label="作品を選択">${workMetricOptions(workName)}</select></td>
+          <td><input type="date" name="workDate" value="${escapeHtml(date)}" aria-label="投稿日"></td>
           <td><input type="number" min="0" name="workValue" value="${impressions}" aria-label="インプレッション/再生数"></td>
-          <td><button class="btn small" type="button" data-remove-work-row>削除</button></td>
+          ${engagementInputsHtml(entry)}
+          <td data-work-status><strong>${impressions.toLocaleString()}</strong></td>
+          <td>
+            <div class="record-actions">
+              <button class="btn primary small" type="button" data-save-work-row>保存</button>
+              <button class="btn small" type="button" data-remove-work-row>削除</button>
+            </div>
+          </td>
         </tr>
       `;
     }
@@ -3969,12 +4195,20 @@ tbody tr:nth-child(even) td {
 
       $$("select[name='business']").forEach(select => setOptions(select, businesses));
       $$("select[name='sns']").forEach(select => setOptions(select, ["X", "Instagram", "TikTok", "Threads", "YouTube", "その他"]));
+      $$("select[name='postType']").forEach(select => setOptions(select, postTypes, "動画"));
+      $$("select[name='workSnsFilter']").forEach(select => {
+        setOptions(select, ["", ...snsTypes, "その他"], "");
+        if (select.options[0]) select.options[0].textContent = "全SNS";
+      });
       $$("select[name='type']").forEach(select => setOptions(select, inquiryTypes));
       $$("select[name='status']").forEach(select => setOptions(select, inquiryStatuses));
       $$("select[name='account']").forEach(select => setOptions(select, data.accounts.map(a => a.name)));
-      renderWorkMetricRows();
       renderFollowerBulkInputs();
       $$("input[name='date'], input[name='checkDate']").forEach(input => input.value = todayIso());
+      $$("input[name='workMonthFilter']").forEach(input => {
+        if (!input.value) input.value = todayIso().slice(0, 7);
+      });
+      renderWorkMetricRows();
       syncInputWeeks();
     }
 
@@ -4279,8 +4513,13 @@ tbody tr:nth-child(even) td {
         ...value,
         business,
         account: defaultPostAccount(business, value.sns),
+        postTime: value.postTime || "",
+        postType: value.postType || "動画",
         impressions: Number(value.impressions || 0)
       };
+      engagementFields.forEach(field => {
+        payload[field] = Number(value[field] || 0);
+      });
       if (postId) {
         const target = data.posts.find(item => item.id === postId);
         if (!target) {
@@ -4313,68 +4552,79 @@ tbody tr:nth-child(even) td {
     $("#lstep-edit-cancel").addEventListener("click", () => cancelRecordEdit("lstep", true));
     $("#add-work-row").addEventListener("click", () => addWorkMetricRow());
     $("#work-metric-body").addEventListener("click", event => {
+      const saveButton = event.target.closest("[data-save-work-row]");
+      if (saveButton) {
+        saveWorkMetricRow(saveButton.closest("tr"));
+        return;
+      }
       const button = event.target.closest("[data-remove-work-row]");
       if (button) removeWorkMetricRow(button);
     });
+    $("#work-form").elements.workSnsFilter.addEventListener("change", () => renderWorkMetricRows());
+    $("#work-form").elements.workMonthFilter.addEventListener("change", () => renderWorkMetricRows());
+
+    function workMetricPayloadFromRow(row, form) {
+      const workName = row.querySelector("[name='workName']")?.value.trim() || "";
+      const sns = row.querySelector("[name='workSns']")?.value || "";
+      const date = row.querySelector("[name='workDate']")?.value || form.elements.date.value || todayIso();
+      const payload = {
+        date,
+        sns,
+        workName,
+        content: workName,
+        impressions: Number(row.querySelector("[name='workValue']")?.value || 0),
+        operator: form.elements.operator.value || ""
+      };
+      engagementFields.forEach(field => {
+        payload[field] = Number(row.querySelector(`[name='${field}']`)?.value || 0);
+      });
+      return payload;
+    }
+
+    function saveWorkMetricRow(row, rerender = true) {
+      const form = $("#work-form");
+      if (!row || !form) return false;
+      const payload = workMetricPayloadFromRow(row, form);
+      if (!payload.workName) {
+        alert("作品/投稿内容を選択してください。");
+        return false;
+      }
+      if (!payload.operator) {
+        alert("入力者を入力してください。");
+        return false;
+      }
+      const inputAt = new Date().toISOString();
+      const rowId = row.dataset.workId || "";
+      const target = rowId ? data.workMetrics.find(item => item.id === rowId) : null;
+      if (target) {
+        const before = cloneRecord(target);
+        Object.assign(target, payload, { updatedAt: inputAt });
+        addHistory("編集", "work", before, target);
+        row.dataset.workId = target.id;
+      } else {
+        const created = { id: uid(), ...payload, inputAt };
+        data.workMetrics.push(created);
+        addHistory("登録", "work", null, created);
+        row.dataset.workId = created.id;
+      }
+      const statusCell = row.querySelector("[data-work-status]");
+      if (statusCell) statusCell.innerHTML = `<strong>${Number(payload.impressions || 0).toLocaleString()}</strong>`;
+      saveData(data);
+      if (rerender) {
+        renderAll();
+        activateInputPanel("work");
+      }
+      return true;
+    }
 
     $("#work-form").addEventListener("submit", event => {
       event.preventDefault();
       const form = event.currentTarget;
-      const value = formObject(form);
-      const workId = value.workId;
-      delete value.workId;
-      const entries = Array.from(form.querySelectorAll("#work-metric-body tr")).map(row => ({
-        workName: row.querySelector("[name='workName']")?.value.trim() || "",
-        impressions: Number(row.querySelector("[name='workValue']")?.value || 0)
-      })).filter(entry => entry.workName);
-      const inputAt = new Date().toISOString();
-      if (workId) {
-        const target = data.workMetrics.find(item => item.id === workId);
-        if (!target) {
-          alert("編集対象の作品別推移が見つかりません。入力済み一覧から再度選択してください。");
-          cancelRecordEdit("work");
-          renderAll();
-          return;
-        }
-        if (!entries.length) {
-          alert("作品を選択してください。");
-          return;
-        }
-        const entry = entries[0];
-        const before = cloneRecord(target);
-        Object.assign(target, {
-          date: value.date,
-          workName: entry.workName,
-          impressions: entry.impressions,
-          operator: value.operator,
-          updatedAt: inputAt
-        });
-        addHistory("編集", "work", before, target);
-        saveData(data);
-        cancelRecordEdit("work");
-        renderAll();
-        return;
-      }
-      if (!entries.length) {
-        alert("作品を1件以上選択してください。");
-        return;
-      }
-      entries.forEach(entry => {
-        const row = {
-          id: uid(),
-          date: value.date,
-          workName: entry.workName,
-          impressions: entry.impressions,
-          operator: value.operator,
-          inputAt
-        };
-        data.workMetrics.push(row);
-        addHistory("登録", "work", null, row);
-      });
-      saveData(data);
-      form.reset();
-      setupForms();
+      const rows = Array.from(form.querySelectorAll("#work-metric-body tr"));
+      const saved = rows.filter(row => saveWorkMetricRow(row, false)).length;
+      if (!saved) alert("保存できる作品別推移がありません。");
       renderAll();
+      activateInputPanel("work");
     });
 
     $("#follower-form").addEventListener("submit", event => {
@@ -4672,25 +4922,11 @@ tbody tr:nth-child(even) td {
       }
       if (type === "work") {
         const rows = data.workMetrics.filter(item => isRecordAllMode() || (item.date >= start && item.date <= end));
-        const dates = Array.from(new Set(rows.map(row => row.date).filter(Boolean))).sort();
-        const works = Array.from(new Set(rows.map(row => row.workName).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja", { numeric: true }));
-        const valueMap = new Map();
-        rows.forEach(row => {
-          const key = `${row.workName}__${row.date}`;
-          valueMap.set(key, Number(valueMap.get(key) || 0) + Number(row.impressions || 0));
-        });
-        const pivotRows = works.map(work => {
-          const values = dates.map(date => Number(valueMap.get(`${work}__${date}`) || 0));
-          return [work, ...values, values.reduce((sum, value) => sum + value, 0)];
-        });
-        const totalRow = ["合計", ...dates.map(date => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${date}`) || 0), 0))];
-        totalRow.push(rows.reduce((sum, row) => sum + Number(row.impressions || 0), 0));
         return {
           name: "作品別推移",
           rows: [
-            ["作品名", ...dates.map(dateLabel), "合計"],
-            ...pivotRows,
-            ...(rows.length ? [totalRow] : [])
+            ["投稿日", "SNS種別", "作品/投稿内容", "インプレッション/再生数", "いいね", "コメント/リプライ", "シェア/リポスト", "保存数", "プロフィールアクセス数", "リンククリック数", "入力者", "入力時間"],
+            ...rows.map(item => [item.date, item.sns, item.workName, item.impressions, item.likes, item.comments, item.shares, item.saves, item.profileAccesses, item.linkClicks, item.operator, fullDateTime(item.inputAt)])
           ]
         };
       }
@@ -4710,8 +4946,8 @@ tbody tr:nth-child(even) td {
       return {
         name: "投稿入力",
         rows: [
-          ["週開始日", "週終了日", "投稿日", "SNS種別", "投稿内容", "インプレッション/再生数", "入力者", "入力時間"],
-          ...sortedPostRows().map(p => [p.weekStart, p.weekEnd, p.date, p.sns, p.content, p.impressions, p.operator, fullDateTime(p.inputAt)])
+          ["週開始日", "週終了日", "投稿日", "投稿時間", "SNS種別", "投稿種別", "投稿内容", "インプレッション/再生数", "いいね", "コメント/リプライ", "シェア/リポスト", "保存数", "プロフィールアクセス数", "リンククリック数", "入力者", "入力時間"],
+          ...sortedPostRows().map(p => [p.weekStart, p.weekEnd, p.date, p.postTime, p.sns, p.postType, p.content, p.impressions, p.likes, p.comments, p.shares, p.saves, p.profileAccesses, p.linkClicks, p.operator, fullDateTime(p.inputAt)])
         ]
       };
     }
