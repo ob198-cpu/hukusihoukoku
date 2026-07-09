@@ -466,10 +466,11 @@ textarea { min-height: 90px; resize: vertical; }
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 260px;
+  min-width: 340px;
 }
 
-.report-slide > .week-controls .week-select-label select {
+.report-slide > .week-controls .week-select-label select,
+.report-slide > .week-controls .month-select-label select {
   margin-top: 0;
 }
 
@@ -493,14 +494,28 @@ textarea { min-height: 90px; resize: vertical; }
   flex-grow: 1;
 }
 
+.week-select-label,
+.month-select-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
 .week-select-label {
   min-width: 280px;
   flex: 1 1 320px;
 }
 
-.week-select-label select {
+.month-select-label {
+  min-width: 170px;
+  flex: 0 0 190px;
+}
+
+.week-select-label select,
+.month-select-label select {
   width: 100%;
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .week-range-card,
@@ -2100,6 +2115,7 @@ tbody tr:nth-child(even) td {
           <div class="week-controls no-print">
             <button class="btn" type="button" id="prev-week">前週</button>
             <button class="btn" type="button" id="next-week">翌週</button>
+            <label class="month-select-label">月ブロック<select id="month-select" aria-label="投稿月"></select></label>
             <label class="week-select-label">週ブロック<select id="week-select" aria-label="投稿週"></select></label>
             <div class="week-range-card"><span>選択中の週</span><strong id="week-range-label">-</strong></div>
             <input type="hidden" id="week-start">
@@ -2168,6 +2184,7 @@ tbody tr:nth-child(even) td {
       <div class="week-controls input-week-controls">
         <button class="btn" type="button" id="input-prev-week">前週</button>
         <button class="btn" type="button" id="input-next-week">翌週</button>
+        <label class="month-select-label">月ブロック<select id="input-month-select" aria-label="入力シートの投稿月"></select></label>
         <label class="week-select-label">週ブロック<select id="input-week-select" aria-label="入力シートの投稿週"></select></label>
         <div class="week-range-card"><span>選択中の週</span><strong id="input-week-range-label">-</strong></div>
       </div>
@@ -2367,6 +2384,7 @@ tbody tr:nth-child(even) td {
           <div class="record-week-controls">
             <button class="btn" type="button" id="record-prev-week">前週</button>
             <button class="btn" type="button" id="record-next-week">翌週</button>
+            <label class="month-select-label">月ブロック<select id="record-month-select" aria-label="入力済み一覧の投稿月"></select></label>
             <label class="week-select-label">週ブロック<select id="record-week-select" aria-label="入力済み一覧の投稿週"></select></label>
             <input type="hidden" id="record-week-start">
             <input type="hidden" id="record-week-end">
@@ -2524,6 +2542,7 @@ tbody tr:nth-child(even) td {
       <div class="modal-controls">
         <button class="btn" type="button" id="modal-prev-week">前週</button>
         <button class="btn" type="button" id="modal-next-week">翌週</button>
+        <label class="month-select-label">月ブロック<select id="modal-month-select" aria-label="問い合わせ詳細の投稿月"></select></label>
         <label class="week-select-label">週ブロック<select id="modal-week-select" aria-label="問い合わせ詳細の投稿週"></select></label>
         <input type="hidden" id="modal-week-start">
       </div>
@@ -2613,19 +2632,65 @@ tbody tr:nth-child(even) td {
       return `${dateLabelWithYear(start)}〜${dateLabel(end)}（日〜土）`;
     }
 
-    function weekBlockOptions(selectedStart) {
-      const center = weekRangeFromStart(selectedStart || todayIso()).start;
-      return Array.from({ length: 41 }, (_, index) => {
-        const start = addDays(center, (index - 20) * 7);
-        const end = addDays(start, 6);
-        return { start, end, label: weekBlockLabel(start, end) };
-      });
+    function monthLabel(month) {
+      const [year, monthNumber] = String(month || "").split("-");
+      return year && monthNumber ? `${year}年${Number(monthNumber)}月` : month || "";
     }
 
-    function fillWeekSelect(select, selectedStart) {
+    function addMonths(month, amount) {
+      const [year, monthNumber] = String(month || todayIso().slice(0, 7)).split("-").map(Number);
+      const d = new Date(year, monthNumber - 1 + amount, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function weekMonth(value) {
+      return weekRangeFromStart(value || todayIso()).start.slice(0, 7);
+    }
+
+    function monthBlockOptions(selectedMonth = todayIso().slice(0, 7)) {
+      const months = new Set();
+      for (let i = -12; i <= 12; i += 1) months.add(addMonths(selectedMonth, i));
+      [...data.posts, ...data.workMetrics, ...data.followers, ...data.inquiries, ...data.lsteps]
+        .map(item => String(item.date || item.checkDate || item.weekStart || "").slice(0, 7))
+        .filter(month => /^\d{4}-\d{2}$/.test(month))
+        .forEach(month => months.add(month));
+      months.add(selectedMonth);
+      return Array.from(months).sort().map(month => ({ month, label: monthLabel(month) }));
+    }
+
+    function fillMonthSelect(select, selectedMonth) {
+      if (!select) return;
+      const month = selectedMonth || todayIso().slice(0, 7);
+      select.innerHTML = monthBlockOptions(month)
+        .map(option => `<option value="${escapeHtml(option.month)}">${escapeHtml(option.label)}</option>`)
+        .join("");
+      select.value = month;
+    }
+
+    function weekBlockOptions(selectedStart, selectedMonth = weekMonth(selectedStart)) {
+      const month = selectedMonth || weekMonth(selectedStart);
+      const first = `${month}-01`;
+      const lastDate = new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0);
+      const last = iso(lastDate);
+      const weeks = [];
+      let start = weekRangeFromStart(first).start;
+      while (start <= last) {
+        const end = addDays(start, 6);
+        weeks.push({ start, end, label: weekBlockLabel(start, end) });
+        start = addDays(start, 7);
+      }
+      const selected = weekRangeFromStart(selectedStart || first).start;
+      if (!weeks.some(option => option.start === selected)) {
+        weeks.push({ start: selected, end: addDays(selected, 6), label: weekBlockLabel(selected) });
+        weeks.sort((a, b) => a.start.localeCompare(b.start));
+      }
+      return weeks;
+    }
+
+    function fillWeekSelect(select, selectedStart, selectedMonth = weekMonth(selectedStart)) {
       if (!select) return;
       const start = weekRangeFromStart(selectedStart || todayIso()).start;
-      select.innerHTML = weekBlockOptions(start)
+      select.innerHTML = weekBlockOptions(start, selectedMonth)
         .map(option => `<option value="${escapeHtml(option.start)}">${escapeHtml(option.label)}</option>`)
         .join("");
       select.value = start;
@@ -4442,28 +4507,39 @@ tbody tr:nth-child(even) td {
       if (label && start) label.textContent = weekBlockLabel(start, end);
     }
 
-    function setMainWeek(value) {
+    function setMainWeek(value, selectedMonth = weekMonth(value)) {
       const { start, end } = weekRangeFromStart(value);
+      const month = selectedMonth || weekMonth(start);
       $("#week-start").value = start;
       $("#week-end").value = end;
-      fillWeekSelect($("#week-select"), start);
-      fillWeekSelect($("#input-week-select"), start);
+      fillMonthSelect($("#month-select"), month);
+      fillMonthSelect($("#input-month-select"), month);
+      fillWeekSelect($("#week-select"), start, month);
+      fillWeekSelect($("#input-week-select"), start, month);
       $("#week-range-label").textContent = weekBlockLabel(start, end);
       $("#input-week-range-label").textContent = weekBlockLabel(start, end);
       syncInputWeeks();
     }
 
-    function setRecordWeek(value) {
+    function setRecordWeek(value, selectedMonth = weekMonth(value)) {
       const { start, end } = weekRangeFromStart(value);
+      const month = selectedMonth || weekMonth(start);
       $("#record-week-start").value = start;
       $("#record-week-end").value = end;
-      fillWeekSelect($("#record-week-select"), start);
+      fillMonthSelect($("#record-month-select"), month);
+      fillWeekSelect($("#record-week-select"), start, month);
     }
 
-    function setModalWeek(value) {
+    function setModalWeek(value, selectedMonth = weekMonth(value)) {
       const { start } = weekRangeFromStart(value);
+      const month = selectedMonth || weekMonth(start);
       $("#modal-week-start").value = start;
-      fillWeekSelect($("#modal-week-select"), start);
+      fillMonthSelect($("#modal-month-select"), month);
+      fillWeekSelect($("#modal-week-select"), start, month);
+    }
+
+    function firstWeekStartForMonth(month) {
+      return weekRangeFromStart(`${month || todayIso().slice(0, 7)}-01`).start;
     }
 
     function moveWeek(days) {
@@ -4953,14 +5029,32 @@ tbody tr:nth-child(even) td {
     $("#report-business").addEventListener("change", renderAll);
     $("#week-select").addEventListener("change", () => {
       recordAllMode = false;
-      setMainWeek($("#week-select").value);
-      setRecordWeek($("#week-select").value);
+      const month = $("#month-select").value;
+      setMainWeek($("#week-select").value, month);
+      setRecordWeek($("#week-select").value, month);
       renderAll();
     });
     $("#input-week-select").addEventListener("change", () => {
       recordAllMode = false;
-      setMainWeek($("#input-week-select").value);
-      setRecordWeek($("#input-week-select").value);
+      const month = $("#input-month-select").value;
+      setMainWeek($("#input-week-select").value, month);
+      setRecordWeek($("#input-week-select").value, month);
+      renderAll();
+    });
+    $("#month-select").addEventListener("change", () => {
+      recordAllMode = false;
+      const month = $("#month-select").value;
+      const start = firstWeekStartForMonth(month);
+      setMainWeek(start, month);
+      setRecordWeek(start, month);
+      renderAll();
+    });
+    $("#input-month-select").addEventListener("change", () => {
+      recordAllMode = false;
+      const month = $("#input-month-select").value;
+      const start = firstWeekStartForMonth(month);
+      setMainWeek(start, month);
+      setRecordWeek(start, month);
       renderAll();
     });
     $("#prev-week").addEventListener("click", () => moveWeek(-7));
@@ -5013,7 +5107,12 @@ tbody tr:nth-child(even) td {
     $("#modal-prev-week").addEventListener("click", () => moveModalWeek(-7));
     $("#modal-next-week").addEventListener("click", () => moveModalWeek(7));
     $("#modal-week-select").addEventListener("change", () => {
-      setModalWeek($("#modal-week-select").value);
+      setModalWeek($("#modal-week-select").value, $("#modal-month-select").value);
+      renderInquiryDetail();
+    });
+    $("#modal-month-select").addEventListener("change", () => {
+      const month = $("#modal-month-select").value;
+      setModalWeek(firstWeekStartForMonth(month), month);
       renderInquiryDetail();
     });
 
@@ -5052,7 +5151,13 @@ tbody tr:nth-child(even) td {
     $("#record-next-week").addEventListener("click", () => moveRecordWeek(7));
     $("#record-week-select").addEventListener("change", () => {
       recordAllMode = false;
-      setRecordWeek($("#record-week-select").value);
+      setRecordWeek($("#record-week-select").value, $("#record-month-select").value);
+      renderRecords();
+    });
+    $("#record-month-select").addEventListener("change", () => {
+      recordAllMode = false;
+      const month = $("#record-month-select").value;
+      setRecordWeek(firstWeekStartForMonth(month), month);
       renderRecords();
     });
 
