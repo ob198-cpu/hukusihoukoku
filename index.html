@@ -1421,11 +1421,13 @@ tbody tr:nth-child(even) td {
 
 .stack.input-form-panel.active {
   display: grid;
+  min-width: 0;
 }
 
 .stack {
   display: grid;
   gap: 20px;
+  min-width: 0;
 }
 
 .field-group {
@@ -1433,6 +1435,7 @@ tbody tr:nth-child(even) td {
   border-radius: 8px;
   padding: 16px;
   background: #fafafa;
+  min-width: 0;
 }
 
 .field-group legend {
@@ -1468,10 +1471,22 @@ tbody tr:nth-child(even) td {
 
 .metric-entry-panel label {
   margin: 0;
+  border: 1px solid #4b5563;
+  background: #f3f4f6;
+  padding: 0;
+  color: #001a33;
+  font-size: 12px;
+  text-align: center;
+  font-weight: 800;
 }
 
 .metric-entry-panel input {
   min-height: 42px;
+  border: 0;
+  border-top: 1px solid #4b5563;
+  border-radius: 0;
+  background: #fff;
+  text-align: left;
 }
 
 .metric-entry-main {
@@ -1484,6 +1499,8 @@ tbody tr:nth-child(even) td {
 }
 
 .work-input-table-wrap {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -1493,7 +1510,8 @@ tbody tr:nth-child(even) td {
 .work-input-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1320px;
+  min-width: 1500px;
+  table-layout: fixed;
 }
 
 .work-input-table th,
@@ -1520,12 +1538,35 @@ tbody tr:nth-child(even) td {
 }
 
 .work-input-table input[type="number"] {
-  min-width: 78px;
+  min-width: 0;
 }
 
 .work-input-table th:first-child,
 .work-input-table td:first-child {
-  min-width: 420px;
+  width: 640px;
+}
+
+.work-input-table th:nth-child(2),
+.work-input-table td:nth-child(2) {
+  width: 92px;
+}
+
+.work-table-gap-head,
+.work-table-gap {
+  width: 110px;
+  background: #eef3f9 !important;
+  border-left: 12px solid #fff;
+  border-right: 12px solid #fff;
+}
+
+.work-input-table th:nth-child(n+4),
+.work-input-table td:nth-child(n+4) {
+  width: 100px;
+}
+
+.work-input-table th:last-child,
+.work-input-table td:last-child {
+  width: 80px;
 }
 
 .work-input-table-wrap + #add-work-row {
@@ -2194,6 +2235,7 @@ tbody tr:nth-child(even) td {
                     <tr>
                       <th>作品/投稿内容</th>
                       <th>インプレッション/再生数</th>
+                      <th class="work-table-gap-head" aria-label="余白"></th>
                       <th>いいね</th>
                       <th>コメント/リプライ</th>
                       <th>シェア/リポスト</th>
@@ -4245,6 +4287,7 @@ tbody tr:nth-child(even) td {
         <tr data-work-row data-work-id="${escapeHtml(entry.id || "")}" data-work-sns="${escapeHtml(sns)}" data-work-date="${escapeHtml(date)}">
           <td><select name="workName" aria-label="作品を選択">${workMetricOptions(workName)}</select></td>
           <td><input type="number" min="0" name="workValue" value="${impressions}" aria-label="インプレッション/再生数"></td>
+          <td class="work-table-gap" aria-hidden="true"></td>
           ${engagementInputsHtml(entry)}
           <td>
             <div class="record-actions">
