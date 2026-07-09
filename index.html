@@ -1541,6 +1541,7 @@ tbody tr:nth-child(even) td {
   font-size: 12px;
   text-align: left;
   background: #f8fafc;
+  white-space: nowrap;
 }
 
 .work-input-table tr:last-child td {
@@ -1563,19 +1564,11 @@ tbody tr:nth-child(even) td {
 
 .work-input-table th:nth-child(2),
 .work-input-table td:nth-child(2) {
-  width: 92px;
+  width: 160px;
 }
 
-.work-table-gap-head,
-.work-table-gap {
-  width: 110px;
-  background: #eef3f9 !important;
-  border-left: 12px solid #fff;
-  border-right: 12px solid #fff;
-}
-
-.work-input-table th:nth-child(n+4),
-.work-input-table td:nth-child(n+4) {
+.work-input-table th:nth-child(n+3),
+.work-input-table td:nth-child(n+3) {
   width: 100px;
 }
 
@@ -2266,7 +2259,6 @@ tbody tr:nth-child(even) td {
                     <tr>
                       <th>作品/投稿内容</th>
                       <th>インプレッション/再生数</th>
-                      <th class="work-table-gap-head" aria-label="余白"></th>
                       <th>いいね</th>
                       <th>コメント/リプライ</th>
                       <th>シェア/リポスト</th>
@@ -4386,7 +4378,6 @@ tbody tr:nth-child(even) td {
         <tr data-work-row data-work-id="${escapeHtml(entry.id || "")}" data-work-sns="${escapeHtml(sns)}" data-work-date="${escapeHtml(date)}">
           <td><select name="workName" aria-label="作品を選択">${workMetricOptions(workName)}</select></td>
           <td><input type="number" min="0" name="workValue" value="${impressions}" aria-label="インプレッション/再生数"></td>
-          <td class="work-table-gap" aria-hidden="true"></td>
           ${engagementInputsHtml(entry)}
           <td>
             <div class="record-actions">
