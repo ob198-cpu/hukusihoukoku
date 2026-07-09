@@ -1459,6 +1459,30 @@ tbody tr:nth-child(even) td {
   font-size: 13px;
 }
 
+.metric-entry-panel {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) repeat(4, minmax(110px, 0.72fr));
+  gap: 8px;
+  align-items: end;
+}
+
+.metric-entry-panel label {
+  margin: 0;
+}
+
+.metric-entry-panel input {
+  min-height: 42px;
+}
+
+.metric-entry-main {
+  grid-row: span 2;
+}
+
+.metric-entry-main input {
+  min-height: 88px;
+  font-size: 18px;
+}
+
 .work-input-table-wrap {
   overflow-x: auto;
   border: 1px solid var(--border-color);
@@ -1469,12 +1493,12 @@ tbody tr:nth-child(even) td {
 .work-input-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 1380px;
+  min-width: 1320px;
 }
 
 .work-input-table th,
 .work-input-table td {
-  padding: 10px;
+  padding: 8px;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
 }
@@ -1496,15 +1520,32 @@ tbody tr:nth-child(even) td {
 }
 
 .work-input-table input[type="number"] {
-  min-width: 86px;
+  min-width: 78px;
 }
 
-.work-input-table input[type="date"] {
-  min-width: 132px;
+.work-input-table th:first-child,
+.work-input-table td:first-child {
+  min-width: 420px;
 }
 
 .work-input-table-wrap + #add-work-row {
   margin-top: 12px;
+}
+
+.work-filter-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(180px, 240px) auto;
+  gap: 10px;
+  align-items: end;
+  margin: 0 0 12px;
+}
+
+.work-filter-row label {
+  margin: 0;
+}
+
+.work-filter-row .btn {
+  height: 44px;
 }
 
 .record-list {
@@ -2105,20 +2146,24 @@ tbody tr:nth-child(even) td {
             </div>
             <div class="grid-2">
               <label>投稿日<input type="date" name="date" required></label>
+              <label>SNS種別<select name="sns" required></select></label>
+            </div>
+            <div class="grid-2">
               <label>投稿時間<input type="time" name="postTime"></label>
-              <label>インプレッション/再生数<input type="number" name="impressions" min="0" value="0"></label>
               <label>投稿種別<select name="postType">
                 <option value="動画">動画</option>
                 <option value="画像">画像</option>
                 <option value="テキスト">テキスト</option>
               </select></label>
+            </div>
+            <div class="metric-entry-panel">
+              <label class="metric-entry-main">インプレッション/再生数<input type="number" name="impressions" min="0" value="0"></label>
               <label>いいね<input type="number" name="likes" min="0" value="0"></label>
               <label>コメント/リプライ<input type="number" name="comments" min="0" value="0"></label>
               <label>シェア/リポスト<input type="number" name="shares" min="0" value="0"></label>
               <label>保存数<input type="number" name="saves" min="0" value="0"></label>
               <label>プロフィールアクセス数<input type="number" name="profileAccesses" min="0" value="0"></label>
               <label>リンククリック数<input type="number" name="linkClicks" min="0" value="0"></label>
-              <label>SNS種別<select name="sns" required></select></label>
             </div>
             <label>投稿内容<textarea name="content" required></textarea></label>
             <div class="grid-2">
@@ -2147,9 +2192,7 @@ tbody tr:nth-child(even) td {
                 <table class="work-input-table">
                   <thead>
                     <tr>
-                      <th>SNS種別</th>
                       <th>作品/投稿内容</th>
-                      <th>投稿日</th>
                       <th>インプレッション/再生数</th>
                       <th>いいね</th>
                       <th>コメント/リプライ</th>
@@ -2157,7 +2200,6 @@ tbody tr:nth-child(even) td {
                       <th>保存数</th>
                       <th>プロフィールアクセス</th>
                       <th>リンククリック</th>
-                      <th>最終ステータス</th>
                       <th>操作</th>
                     </tr>
                   </thead>
@@ -2369,6 +2411,17 @@ tbody tr:nth-child(even) td {
 
         <div class="summary-panel" data-summary-panel="works">
           <h3 class="summary-section-title">作品別インプレッション推移</h3>
+          <div class="work-filter-row">
+            <label>SNS種別
+              <select id="summary-work-sns">
+                <option value="">全SNS</option>
+              </select>
+            </label>
+            <label>対象月
+              <input type="month" id="summary-work-month">
+            </label>
+            <button class="btn" type="button" id="summary-work-clear">全期間</button>
+          </div>
           <div class="summary-mode-tabs" aria-label="作品別推移の表示単位">
             <button class="summary-mode-btn active" type="button" data-work-mode="day">日別</button>
             <button class="summary-mode-btn" type="button" data-work-mode="week">週別</button>
@@ -3211,23 +3264,29 @@ tbody tr:nth-child(even) td {
       });
       const periods = Array.from(periodMap.entries()).sort(([a], [b]) => a.localeCompare(b)).slice(-WORK_DATE_LIMIT);
       const periodKeys = periods.map(([key]) => key);
-      const works = Array.from(new Set(rows.map(row => row.workName).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja", { numeric: true }));
+      const works = Array.from(new Map(rows
+        .filter(row => row.workName)
+        .map(row => {
+          const key = `${row.sns || "-"}__${row.workName}`;
+          return [key, { key, sns: row.sns || "-", workName: row.workName, label: `${row.sns || "-"} / ${row.workName}` }];
+        })).values())
+        .sort((a, b) => a.sns.localeCompare(b.sns, "ja") || a.workName.localeCompare(b.workName, "ja", { numeric: true }));
       const valueMap = new Map();
       rows.forEach(row => {
         if (!row.workName || !row.date) return;
         const period = summaryPeriodInfo(row.date, mode);
-        const key = `${row.workName}__${period.key}`;
+        const key = `${row.sns || "-"}__${row.workName}__${period.key}`;
         valueMap.set(key, (Number(valueMap.get(key) || 0) + Number(row.impressions || 0)));
       });
       if (!periods.length || !works.length) {
         return tableHtml(["作品名", "数値"], []);
       }
-      const headers = ["作品名", ...periods.map(([, label]) => label), "合計"];
+      const headers = ["SNS", "作品/投稿内容", ...periods.map(([, label]) => label), "合計"];
       const bodyRows = works.map(work => {
-        const values = periodKeys.map(key => Number(valueMap.get(`${work}__${key}`) || 0));
-        return [work, ...values.map(value => value.toLocaleString()), values.reduce((sum, value) => sum + value, 0).toLocaleString()];
+        const values = periodKeys.map(key => Number(valueMap.get(`${work.key}__${key}`) || 0));
+        return [work.sns, work.workName, ...values.map(value => value.toLocaleString()), values.reduce((sum, value) => sum + value, 0).toLocaleString()];
       });
-      const totalRow = ["合計", ...periodKeys.map(key => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${key}`) || 0), 0).toLocaleString())];
+      const totalRow = ["合計", "", ...periodKeys.map(key => works.reduce((sum, work) => sum + Number(valueMap.get(`${work.key}__${key}`) || 0), 0).toLocaleString())];
       totalRow.push(rows.reduce((sum, row) => sum + Number(row.impressions || 0), 0).toLocaleString());
       return workMetricChartHtml(periods, works, valueMap) + tableHtml(headers, [...bodyRows, totalRow]) + workMetricEngagementSummaryHtml(rows);
     }
@@ -3276,22 +3335,22 @@ tbody tr:nth-child(even) td {
 
     function workMetricChartHtml(periods, works, valueMap) {
       const periodKeys = periods.map(([key]) => key);
-      const totals = periodKeys.map(key => works.reduce((sum, work) => sum + Number(valueMap.get(`${work}__${key}`) || 0), 0));
+      const totals = periodKeys.map(key => works.reduce((sum, work) => sum + Number(valueMap.get(`${work.key}__${key}`) || 0), 0));
       const max = Math.max(...totals, 1);
       return `
         <div class="work-chart">
           <div class="follower-chart-legend">
-            ${works.map((work, index) => `<span><i style="background:${workColor(index)}"></i>${escapeHtml(work)}</span>`).join("")}
+            ${works.map((work, index) => `<span><i style="background:${workColor(index)}"></i>${escapeHtml(work.label)}</span>`).join("")}
           </div>
           <div class="work-chart-bars">
             ${periods.map(([key, label], index) => {
               const total = totals[index] || 0;
               const height = Math.max(12, Math.round((total / max) * 150));
               const segments = works.map((work, workIndex) => {
-                const value = Number(valueMap.get(`${work}__${key}`) || 0);
+                const value = Number(valueMap.get(`${work.key}__${key}`) || 0);
                 if (!value) return "";
                 const segmentHeight = total ? Math.max(18, Math.round((value / total) * height)) : 0;
-                return `<div class="work-segment" title="${escapeHtml(work)} ${value.toLocaleString()}" style="height:${segmentHeight}px; background:${workColor(workIndex)}">${value.toLocaleString()}</div>`;
+                return `<div class="work-segment" title="${escapeHtml(work.label)} ${value.toLocaleString()}" style="height:${segmentHeight}px; background:${workColor(workIndex)}">${value.toLocaleString()}</div>`;
               }).join("");
               return `
                 <div class="work-chart-col">
@@ -3883,7 +3942,13 @@ tbody tr:nth-child(even) td {
       $$("[data-work-mode]").forEach(button => {
         button.classList.toggle("active", button.dataset.workMode === workBreakdownMode);
       });
-      const rows = data.workMetrics.filter(item => isInSummaryRange(item.date));
+      const sns = $("#summary-work-sns")?.value || "";
+      const month = $("#summary-work-month")?.value || "";
+      const rows = data.workMetrics.filter(item =>
+        isInSummaryRange(item.date) &&
+        (!sns || item.sns === sns) &&
+        (!month || String(item.date || "").startsWith(month))
+      );
       $("#summary-work-metrics").innerHTML = workMetricTableHtml(rows, workBreakdownMode);
     }
 
@@ -4067,7 +4132,7 @@ tbody tr:nth-child(even) td {
       return [date, sns, content].filter(Boolean).join(" ");
     }
 
-    function workMetricCandidates(selected = "") {
+    function workMetricCandidates(selected = "", filters = currentWorkMetricFilters()) {
       const seen = new Set();
       const items = [];
       const add = name => {
@@ -4076,18 +4141,27 @@ tbody tr:nth-child(even) td {
         seen.add(value);
         items.push(value);
       };
+      const inFilter = item => {
+        const snsMatch = !filters.sns || item.sns === filters.sns;
+        const monthMatch = !filters.month || String(item.date || "").startsWith(filters.month);
+        return snsMatch && monthMatch;
+      };
       [...data.posts]
-        .sort((a, b) => `${b.date || ""}_${b.inputAt || ""}`.localeCompare(`${a.date || ""}_${a.inputAt || ""}`))
+        .filter(inFilter)
+        .sort((a, b) => (a.sns || "").localeCompare(b.sns || "", "ja") || `${b.date || ""}_${b.inputAt || ""}`.localeCompare(`${a.date || ""}_${a.inputAt || ""}`))
         .forEach(post => add(workMetricNameFromPost(post)));
-      data.workMetrics.forEach(item => add(item.workName));
+      data.workMetrics
+        .filter(inFilter)
+        .sort((a, b) => (a.sns || "").localeCompare(b.sns || "", "ja") || `${b.date || ""}_${b.inputAt || ""}`.localeCompare(`${a.date || ""}_${a.inputAt || ""}`))
+        .forEach(item => add(item.workName));
       add(selected);
       if (!items.length) ["投稿1", "投稿2", "投稿3", "投稿4"].forEach(add);
       return items;
     }
 
-    function workMetricOptions(selected = "") {
+    function workMetricOptions(selected = "", filters = currentWorkMetricFilters()) {
       return ['<option value="">作品を選択</option>'].concat(
-        workMetricCandidates(selected).map(name => `<option value="${escapeHtml(name)}" ${name === selected ? "selected" : ""}>${escapeHtml(name)}</option>`)
+        workMetricCandidates(selected, filters).map(name => `<option value="${escapeHtml(name)}" ${name === selected ? "selected" : ""}>${escapeHtml(name)}</option>`)
       ).join("");
     }
 
@@ -4096,6 +4170,14 @@ tbody tr:nth-child(even) td {
       const sns = form?.elements.workSnsFilter?.value || "";
       const month = form?.elements.workMonthFilter?.value || (form?.elements.date?.value || todayIso()).slice(0, 7);
       return { sns, month };
+    }
+
+    function latestWorkMetricMonth() {
+      const months = [...data.workMetrics, ...data.posts]
+        .map(item => String(item.date || "").slice(0, 7))
+        .filter(month => /^\d{4}-\d{2}$/.test(month))
+        .sort();
+      return months.at(-1) || todayIso().slice(0, 7);
     }
 
     function latestWorkMetricMap(sns = "", month = "") {
@@ -4110,14 +4192,33 @@ tbody tr:nth-child(even) td {
       return map;
     }
 
+    function latestWorkMetricByName(sns = "", month = "") {
+      const map = new Map();
+      data.workMetrics
+        .filter(item => (!sns || item.sns === sns) && (!month || String(item.date || "").startsWith(month)))
+        .sort((a, b) => `${a.date || ""}_${a.inputAt || ""}`.localeCompare(`${b.date || ""}_${b.inputAt || ""}`))
+        .forEach(item => {
+          const key = item.workName || item.content || "";
+          if (key) map.set(key, item);
+        });
+      return map;
+    }
+
+    function guessSnsFromWorkName(workName = "") {
+      return snsTypes.find(sns => String(workName).includes(sns)) || "";
+    }
+
     function defaultWorkMetricEntries() {
       const { sns, month } = currentWorkMetricFilters();
       const latestMap = latestWorkMetricMap(sns, month);
+      const latestByName = latestWorkMetricByName(sns, month);
       const formDate = $("#work-form")?.elements.date?.value || todayIso();
       const fallbackDate = month && !formDate.startsWith(month) ? `${month}-01` : formDate;
-      return workMetricCandidates().slice(0, 12).map((workName, index) => {
-        const fallbackSns = sns || snsTypes[index % snsTypes.length];
-        const latest = latestMap.get(`${fallbackSns}__${workName}`) || latestMap.get(`__${workName}`);
+      const candidates = workMetricCandidates("", { sns, month }).slice(0, 12);
+      return candidates.map((workName, index) => {
+        const byName = latestByName.get(workName);
+        const fallbackSns = sns || byName?.sns || guessSnsFromWorkName(workName) || snsTypes[index % snsTypes.length];
+        const latest = latestMap.get(`${fallbackSns}__${workName}`) || byName || latestMap.get(`__${workName}`);
         return latest ? { ...latest } : {
           sns: fallbackSns,
           workName,
@@ -4141,13 +4242,10 @@ tbody tr:nth-child(even) td {
       const sns = entry.sns || currentWorkMetricFilters().sns || "X";
       const date = entry.date || todayIso();
       return `
-        <tr data-work-row data-work-id="${escapeHtml(entry.id || "")}">
-          <td><select name="workSns" aria-label="SNS種別">${snsTypes.concat("その他").map(value => `<option value="${escapeHtml(value)}" ${value === sns ? "selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></td>
+        <tr data-work-row data-work-id="${escapeHtml(entry.id || "")}" data-work-sns="${escapeHtml(sns)}" data-work-date="${escapeHtml(date)}">
           <td><select name="workName" aria-label="作品を選択">${workMetricOptions(workName)}</select></td>
-          <td><input type="date" name="workDate" value="${escapeHtml(date)}" aria-label="投稿日"></td>
           <td><input type="number" min="0" name="workValue" value="${impressions}" aria-label="インプレッション/再生数"></td>
           ${engagementInputsHtml(entry)}
-          <td data-work-status><strong>${impressions.toLocaleString()}</strong></td>
           <td>
             <div class="record-actions">
               <button class="btn primary small" type="button" data-save-work-row>保存</button>
@@ -4203,10 +4301,14 @@ tbody tr:nth-child(even) td {
       $$("select[name='type']").forEach(select => setOptions(select, inquiryTypes));
       $$("select[name='status']").forEach(select => setOptions(select, inquiryStatuses));
       $$("select[name='account']").forEach(select => setOptions(select, data.accounts.map(a => a.name)));
+      if ($("#summary-work-sns")) {
+        setOptions($("#summary-work-sns"), ["", ...snsTypes, "その他"], "");
+        $("#summary-work-sns").options[0].textContent = "全SNS";
+      }
       renderFollowerBulkInputs();
       $$("input[name='date'], input[name='checkDate']").forEach(input => input.value = todayIso());
       $$("input[name='workMonthFilter']").forEach(input => {
-        if (!input.value) input.value = todayIso().slice(0, 7);
+        if (!input.value) input.value = latestWorkMetricMonth();
       });
       renderWorkMetricRows();
       syncInputWeeks();
@@ -4565,8 +4667,9 @@ tbody tr:nth-child(even) td {
 
     function workMetricPayloadFromRow(row, form) {
       const workName = row.querySelector("[name='workName']")?.value.trim() || "";
-      const sns = row.querySelector("[name='workSns']")?.value || "";
-      const date = row.querySelector("[name='workDate']")?.value || form.elements.date.value || todayIso();
+      const filters = currentWorkMetricFilters();
+      const sns = filters.sns || row.dataset.workSns || guessSnsFromWorkName(workName) || "X";
+      const date = form.elements.date.value || row.dataset.workDate || (filters.month ? `${filters.month}-01` : todayIso());
       const payload = {
         date,
         sns,
@@ -4607,8 +4710,8 @@ tbody tr:nth-child(even) td {
         addHistory("登録", "work", null, created);
         row.dataset.workId = created.id;
       }
-      const statusCell = row.querySelector("[data-work-status]");
-      if (statusCell) statusCell.innerHTML = `<strong>${Number(payload.impressions || 0).toLocaleString()}</strong>`;
+      row.dataset.workSns = payload.sns;
+      row.dataset.workDate = payload.date;
       saveData(data);
       if (rerender) {
         renderAll();
@@ -4803,6 +4906,13 @@ tbody tr:nth-child(even) td {
         workBreakdownMode = button.dataset.workMode;
         renderSummaryWorkMetrics();
       });
+    });
+    $("#summary-work-sns")?.addEventListener("change", renderSummaryWorkMetrics);
+    $("#summary-work-month")?.addEventListener("change", renderSummaryWorkMetrics);
+    $("#summary-work-clear")?.addEventListener("click", () => {
+      $("#summary-work-sns").value = "";
+      $("#summary-work-month").value = "";
+      renderSummaryWorkMetrics();
     });
     $$("[data-summary-tab]").forEach(button => {
       button.addEventListener("click", () => setSummaryTab(button.dataset.summaryTab));
