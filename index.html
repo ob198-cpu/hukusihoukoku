@@ -1573,6 +1573,16 @@ tbody tr:nth-child(even) td {
   margin-top: 12px;
 }
 
+.work-filter-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: -8px;
+}
+
 .work-filter-row {
   display: grid;
   grid-template-columns: minmax(180px, 240px) minmax(180px, 240px) auto;
@@ -2226,6 +2236,10 @@ tbody tr:nth-child(even) td {
                 <option value="">全SNS</option>
               </select></label>
               <label>月別で表示<input type="month" name="workMonthFilter"></label>
+            </div>
+            <div class="work-filter-status">
+              <button class="btn small" type="button" id="work-filter-all">全期間表示</button>
+              <span id="work-filter-count">-</span>
             </div>
             <fieldset class="field-group">
               <legend>作品ごとの実績</legend>
@@ -4210,7 +4224,7 @@ tbody tr:nth-child(even) td {
     function currentWorkMetricFilters() {
       const form = $("#work-form");
       const sns = form?.elements.workSnsFilter?.value || "";
-      const month = form?.elements.workMonthFilter?.value || (form?.elements.date?.value || todayIso()).slice(0, 7);
+      const month = form?.elements.workMonthFilter?.value || "";
       return { sns, month };
     }
 
@@ -4256,7 +4270,7 @@ tbody tr:nth-child(even) td {
       const latestByName = latestWorkMetricByName(sns, month);
       const formDate = $("#work-form")?.elements.date?.value || todayIso();
       const fallbackDate = month && !formDate.startsWith(month) ? `${month}-01` : formDate;
-      const candidates = workMetricCandidates("", { sns, month }).slice(0, 12);
+      const candidates = workMetricCandidates("", { sns, month });
       return candidates.map((workName, index) => {
         const byName = latestByName.get(workName);
         const fallbackSns = sns || byName?.sns || guessSnsFromWorkName(workName) || snsTypes[index % snsTypes.length];
@@ -4304,6 +4318,19 @@ tbody tr:nth-child(even) td {
       if (!body) return;
       const rows = entries && entries.length ? entries : defaultWorkMetricEntries();
       body.innerHTML = rows.map(workMetricRowHtml).join("");
+      updateWorkFilterStatus(rows.length);
+    }
+
+    function updateWorkFilterStatus(visibleCount = 0) {
+      const label = $("#work-filter-count");
+      if (!label) return;
+      const { sns, month } = currentWorkMetricFilters();
+      const totalCandidates = workMetricCandidates("", { sns: "", month: "" }).length;
+      const condition = [
+        sns ? `SNS: ${sns}` : "SNS: 全SNS",
+        month ? `月: ${month}` : "月: 全期間"
+      ].join(" / ");
+      label.textContent = `${condition} / 表示 ${visibleCount}件 / 全候補 ${totalCandidates}件`;
     }
 
     function addWorkMetricRow(entry = {}) {
@@ -4350,9 +4377,6 @@ tbody tr:nth-child(even) td {
       }
       renderFollowerBulkInputs();
       $$("input[name='date'], input[name='checkDate']").forEach(input => input.value = todayIso());
-      $$("input[name='workMonthFilter']").forEach(input => {
-        if (!input.value) input.value = latestWorkMetricMonth();
-      });
       renderWorkMetricRows();
       syncInputWeeks();
     }
@@ -4707,6 +4731,12 @@ tbody tr:nth-child(even) td {
     });
     $("#work-form").elements.workSnsFilter.addEventListener("change", () => renderWorkMetricRows());
     $("#work-form").elements.workMonthFilter.addEventListener("change", () => renderWorkMetricRows());
+    $("#work-filter-all")?.addEventListener("click", () => {
+      const form = $("#work-form");
+      form.elements.workSnsFilter.value = "";
+      form.elements.workMonthFilter.value = "";
+      renderWorkMetricRows();
+    });
 
     function workMetricPayloadFromRow(row, form) {
       const workName = row.querySelector("[name='workName']")?.value.trim() || "";
