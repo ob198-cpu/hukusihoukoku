@@ -1481,7 +1481,7 @@ tbody tr:nth-child(even) td {
   display: grid;
   grid-template-columns: minmax(180px, 1fr) repeat(4, minmax(110px, 0.72fr));
   gap: 8px;
-  align-items: end;
+  align-items: stretch;
 }
 
 .metric-entry-panel label {
@@ -1493,6 +1493,8 @@ tbody tr:nth-child(even) td {
   font-size: 12px;
   text-align: center;
   font-weight: 800;
+  display: flex;
+  flex-direction: column;
 }
 
 .metric-entry-panel input {
@@ -1502,14 +1504,16 @@ tbody tr:nth-child(even) td {
   border-radius: 0;
   background: #fff;
   text-align: left;
+  flex: 1;
 }
 
 .metric-entry-main {
   grid-row: span 2;
+  align-self: stretch;
 }
 
 .metric-entry-main input {
-  min-height: 88px;
+  min-height: 96px;
   font-size: 18px;
 }
 
