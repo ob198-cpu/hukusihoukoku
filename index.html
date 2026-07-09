@@ -2265,7 +2265,6 @@ tbody tr:nth-child(even) td {
               <button class="btn small" type="button" id="add-work-row">行を追加</button>
             </fieldset>
             <div class="post-form-actions">
-              <button class="btn primary" type="submit" id="work-submit-button">作品別推移を登録</button>
               <button class="btn" type="button" id="work-edit-cancel" hidden>編集をキャンセル</button>
             </div>
           </form>
@@ -4268,13 +4267,34 @@ tbody tr:nth-child(even) td {
       const { sns, month } = currentWorkMetricFilters();
       const latestMap = latestWorkMetricMap(sns, month);
       const latestByName = latestWorkMetricByName(sns, month);
+      const latestPostByName = new Map();
+      [...data.posts]
+        .filter(item => (!sns || item.sns === sns) && (!month || String(item.date || "").startsWith(month)))
+        .sort((a, b) => `${a.date || ""}_${a.inputAt || ""}`.localeCompare(`${b.date || ""}_${b.inputAt || ""}`))
+        .forEach(post => latestPostByName.set(workMetricNameFromPost(post), post));
       const formDate = $("#work-form")?.elements.date?.value || todayIso();
       const fallbackDate = month && !formDate.startsWith(month) ? `${month}-01` : formDate;
       const candidates = workMetricCandidates("", { sns, month });
       return candidates.map((workName, index) => {
         const byName = latestByName.get(workName);
-        const fallbackSns = sns || byName?.sns || guessSnsFromWorkName(workName) || snsTypes[index % snsTypes.length];
+        const sourcePost = latestPostByName.get(workName);
+        const fallbackSns = sns || byName?.sns || sourcePost?.sns || guessSnsFromWorkName(workName) || snsTypes[index % snsTypes.length];
         const latest = latestMap.get(`${fallbackSns}__${workName}`) || byName || latestMap.get(`__${workName}`);
+        if (!latest && sourcePost) {
+          return {
+            sns: sourcePost.sns || fallbackSns,
+            workName,
+            content: workName,
+            date: sourcePost.date || fallbackDate,
+            impressions: Number(sourcePost.impressions || 0),
+            likes: Number(sourcePost.likes || 0),
+            comments: Number(sourcePost.comments || 0),
+            shares: Number(sourcePost.shares || 0),
+            saves: Number(sourcePost.saves || 0),
+            profileAccess: Number(sourcePost.profileAccess || 0),
+            linkClicks: Number(sourcePost.linkClicks || 0)
+          };
+        }
         return latest ? { ...latest } : {
           sns: fallbackSns,
           workName,
@@ -4795,12 +4815,7 @@ tbody tr:nth-child(even) td {
 
     $("#work-form").addEventListener("submit", event => {
       event.preventDefault();
-      const form = event.currentTarget;
-      const rows = Array.from(form.querySelectorAll("#work-metric-body tr"));
-      const saved = rows.filter(row => saveWorkMetricRow(row, false)).length;
-      if (!saved) alert("保存できる作品別推移がありません。");
-      renderAll();
-      activateInputPanel("work");
+      alert("作品別推移は各行の「保存」ボタンで1件ずつ保存してください。");
     });
 
     $("#follower-form").addEventListener("submit", event => {
